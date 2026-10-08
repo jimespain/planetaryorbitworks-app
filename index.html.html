@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>LA Solar System — Cadet Command</title>
+<style>
+:root{--bg:#04070d;--line:#1d3550;--line2:#2c5277;--cyan:#5fd4ff;--cyan2:#2a9fd6;--gold:#e8b84a;--text:#d6e4f2;--dim:#7890a8;--good:#5fe3a1;--bad:#ff6b6b;
+--font:'Bahnschrift','DIN Alternate','Segoe UI',system-ui,sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden}
+button{font-family:inherit;cursor:pointer}
+#app{display:grid;grid-template-columns:88px 1fr;grid-template-rows:64px 1fr;height:100vh;height:100dvh}
+#topbar{grid-column:1/3;display:flex;align-items:center;gap:20px;padding:0 18px;background:linear-gradient(180deg,#0b1626,#060c16);border-bottom:1px solid var(--line);position:relative;z-index:5}
+#topbar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--cyan) 30%,var(--gold) 70%,transparent);opacity:.55}
+.brand{display:flex;align-items:center;gap:12px}
+.logo-hex{width:38px;height:42px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:radial-gradient(circle,#fff0c0,#e8a530 60%,#7a4a10);display:flex;align-items:center;justify-content:center;color:#3a2200;font-size:20px;font-weight:700}
+.brand .t1{font-size:15px;letter-spacing:3px;font-weight:600}
+.brand .t2{font-size:10.5px;letter-spacing:2px;color:var(--cyan)}
+.hudstats{margin-left:auto;display:flex;align-items:stretch;height:52px}
+.hstat{padding:4px 14px;border-left:1px solid var(--line);min-width:118px;display:flex;flex-direction:column;justify-content:center}
+.hstat .lbl{font-size:9.5px;letter-spacing:2px;color:var(--dim)}
+.hstat .val{font-size:20px;font-weight:600;color:var(--cyan);line-height:1.1}
+.hstat .val span{font-size:12px;color:var(--dim)}
+.hstat .sub{font-size:10px;color:var(--dim);letter-spacing:1px}
+.pips{display:flex;gap:3px;margin-top:4px}
+.pip{width:10px;height:4px;background:#1b2c40}
+.pip.on{background:var(--gold);box-shadow:0 0 6px var(--gold)}
+.hexrow{display:flex;gap:3px;margin:3px 0 2px;min-height:24px}
+.hex{width:21px;height:24px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:linear-gradient(160deg,#ffd877,#b07a1e);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.hex.empty{background:#16263a}
+.hex.more{background:#22405f;color:var(--text);font-size:9px}
+#sidenav{background:linear-gradient(90deg,#08111e,#060b14);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:10px 0;gap:4px;z-index:4}
+.navbtn{background:none;border:none;color:var(--dim);display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;position:relative;font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;transition:.15s}
+.navbtn svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.6}
+.navbtn:hover{color:var(--text);background:rgba(95,212,255,.05)}
+.navbtn.active{color:var(--cyan);background:linear-gradient(90deg,rgba(95,212,255,.14),transparent)}
+.navbtn.active::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+#views{position:relative;overflow:hidden}
+.view{position:absolute;inset:0;display:none;overflow:auto}
+.view.active{display:block}
+#view-explore{overflow:hidden}
+.hud{position:relative;background:linear-gradient(180deg,rgba(13,25,42,.93),rgba(7,13,24,.93));border:1px solid var(--line);padding:14px}
+.hud::before,.hud::after{content:"";position:absolute;width:12px;height:12px;pointer-events:none}
+.hud::before{top:-1px;left:-1px;border-top:2px solid var(--cyan);border-left:2px solid var(--cyan)}
+.hud::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--gold);border-right:2px solid var(--gold)}
+.h-title{font-size:11px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin:4px 0 10px;display:flex;align-items:center;gap:8px}
+.h-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line2),transparent)}
+.big-name{font-size:28px;letter-spacing:4px;text-transform:uppercase;font-weight:300;line-height:1.1}
+.cls{font-size:11px;letter-spacing:2px;color:var(--cyan);text-transform:uppercase}
+.row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid rgba(44,82,119,.35);font-size:13px}
+.row span:first-child{color:var(--dim)}
+.row b{font-weight:600;text-align:right}
+.btn{background:linear-gradient(180deg,#1e4a6e,#143450);border:1px solid var(--cyan2);color:var(--text);padding:9px 16px;font-size:12px;letter-spacing:2px;text-transform:uppercase;transition:.15s}
+.btn:hover{border-color:var(--cyan);box-shadow:0 0 12px rgba(95,212,255,.35)}
+.btn.gold{background:linear-gradient(180deg,#6b4c14,#3f2c0a);border-color:var(--gold);color:#ffe9b8}
+.btn.ghost{background:rgba(5,10,18,.6);border-color:var(--line2);color:var(--dim)}
+.btn.on{border-color:var(--cyan);color:var(--cyan);background:rgba(95,212,255,.14)}
+.btn:disabled{opacity:.4;pointer-events:none}
+.btn.full{width:100%;margin-top:10px}
+.note{font-size:12px;color:var(--dim);line-height:1.5}
+.fact-box{margin-top:10px;padding:10px 12px;border-left:2px solid var(--gold);background:rgba(232,184,74,.07);font-size:13px;line-height:1.5}
+canvas{display:block}
+/* explore */
+#mapCanvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.ov{position:absolute;z-index:2}
+.ov-tl{top:14px;left:14px;width:290px}
+.ov-bl{bottom:14px;left:14px;display:flex;gap:6px}
+.ov-r{top:14px;right:14px;width:310px;max-height:calc(100% - 28px);overflow:auto}
+.ov-tc{top:14px;left:50%;transform:translateX(-50%);pointer-events:none}
+.seg{display:flex;margin-bottom:8px}
+.seg .btn{flex:1;padding:8px 4px;font-size:10.5px;letter-spacing:1.2px}
+.seg .btn:not(.on){background:rgba(5,10,18,.6);color:var(--dim);border-color:var(--line2)}
+.ov-r{overflow-x:hidden}
+@media (max-width:760px){#exploreInfo.empty{display:none}}
+.iconbtn{width:40px;height:40px;padding:0;font-size:17px;letter-spacing:0}
+.status-pill{background:rgba(9,17,30,.92);border:1px solid var(--line2);padding:6px 14px;font-size:11px;letter-spacing:1.5px;color:var(--cyan);display:none;white-space:nowrap}
+.status-pill.show{display:block}
+.collapse{float:right;background:none;border:none;color:var(--dim);font-size:14px}
+/* lab */
+.lab-grid{display:grid;grid-template-columns:210px 1fr 360px;gap:12px;padding:12px;height:100%}
+.lab-list{overflow:auto}
+.lab-item{display:flex;align-items:center;gap:10px;padding:8px;border:1px solid transparent;cursor:pointer;font-size:13px;letter-spacing:1px}
+.lab-item:hover{border-color:var(--line2)}
+.lab-item.sel{border-color:var(--cyan);background:rgba(95,212,255,.08)}
+.lab-item .dot{width:16px;height:16px;border-radius:50%;flex-shrink:0}
+.lab-item .chk{margin-left:auto;color:var(--good);font-size:11px}
+.grp{font-size:10px;letter-spacing:2px;color:var(--dim);margin:10px 0 4px}
+.lab-viewer{padding:0;overflow:hidden;min-height:280px}
+#labCanvas{width:100%;height:100%}
+.viewer-title{position:absolute;left:18px;top:14px;pointer-events:none}
+.lab-data{overflow:auto}
+.bar{margin:8px 0}
+.bar .bl{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
+.bar .bt{height:7px;background:#12233a;position:relative}
+.bar .bf{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--cyan2),var(--cyan));box-shadow:0 0 8px rgba(95,212,255,.5)}
+.tiles{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tile{width:56px;height:62px;border:1px solid var(--line2);background:rgba(20,40,64,.6);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;color:var(--text)}
+.tile:hover,.tile.sel{border-color:var(--gold);background:rgba(232,184,74,.1)}
+.tile .z{position:absolute;top:2px;left:4px;font-size:9px;color:var(--dim)}
+.tile .s{font-size:20px;font-weight:600}
+.tile .n{font-size:8px;letter-spacing:.5px;color:var(--dim)}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{font-size:11px;padding:4px 8px;border:1px solid var(--line2)}
+/* orbit */
+.orbit-grid{display:grid;grid-template-columns:1fr 390px;gap:12px;padding:12px;height:100%}
+.orbit-left{display:flex;flex-direction:column;gap:12px;min-height:0}
+.orrery-wrap{flex:1;padding:0;min-height:300px;overflow:hidden}
+#orreryCanvas{width:100%;height:100%}
+.orbit-right{display:flex;flex-direction:column;gap:12px;overflow:auto;min-height:0}
+table.dt{width:100%;border-collapse:collapse;font-size:12px}
+.dt th{text-align:left;font-weight:400;color:var(--dim);letter-spacing:1px;font-size:10px;padding:5px 6px;border-bottom:1px solid var(--line2);text-transform:uppercase}
+.dt td{padding:5px 6px;border-bottom:1px solid rgba(44,82,119,.3)}
+.dt tr.hl td{color:var(--gold)}
+.dt tr{cursor:pointer}
+.speedrow{display:flex;flex-wrap:wrap;gap:5px}
+.speedrow .btn{padding:6px 9px;font-size:10px;letter-spacing:1px}
+input[type=date],input[type=number]{background:#0a1626;border:1px solid var(--line2);color:var(--text);padding:8px;font-family:inherit;font-size:14px;color-scheme:dark}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.choice{background:rgba(20,40,64,.6);border:1px solid var(--line2);color:var(--text);padding:10px;text-align:left;font-size:13px;line-height:1.35}
+.choice:hover{border-color:var(--cyan)}
+.choice.right{border-color:var(--good);background:rgba(95,227,161,.15)}
+.choice.wrong{border-color:var(--bad);background:rgba(255,107,107,.15)}
+.fb{min-height:20px;margin-top:8px;font-size:13px;line-height:1.45}
+.fb.good{color:var(--good)}.fb.bad{color:var(--bad)}
+/* mission control */
+.mc-wrap{padding:14px;display:flex;flex-direction:column;gap:14px}
+.rank-head{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.insignia{width:70px;height:78px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:linear-gradient(160deg,#ffd877,#8a5a12);display:flex;align-items:center;justify-content:center;font-size:30px}
+.prog{height:8px;background:#12233a;margin-top:8px;position:relative;max-width:420px}
+.prog i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--gold),#ffe08a);box-shadow:0 0 8px var(--gold)}
+.tier.locked{opacity:.45}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.mcard{border:1px solid var(--line2);background:rgba(14,28,46,.7);padding:12px;cursor:pointer;display:flex;gap:12px;align-items:flex-start;transition:.15s;color:var(--text);text-align:left}
+.mcard:hover{border-color:var(--cyan)}
+.mcard .hex{width:38px;height:44px;font-size:18px}
+.mcard .mt{font-size:13px;letter-spacing:1.5px;text-transform:uppercase}
+.mcard .md{font-size:11.5px;color:var(--dim);margin-top:3px;line-height:1.4}
+.mcard .ms{font-size:10px;letter-spacing:1.5px;margin-top:6px;color:var(--cyan)}
+.mcard.done{border-color:rgba(95,227,161,.5)}
+.mcard.done .ms{color:var(--good)}
+/* facts */
+.facts-wrap{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:20px}
+.factcard{max-width:660px;width:100%;min-height:230px;text-align:center;padding:34px 30px;display:flex;flex-direction:column;justify-content:center;gap:14px}
+.fc-tag{font-size:11px;letter-spacing:3px;color:var(--gold)}
+.fc-text{font-size:21px;line-height:1.5;font-weight:300}
+.pop{animation:pop .5s ease}
+@keyframes pop{0%{opacity:0;transform:scale(.94) translateY(8px);filter:blur(4px)}100%{opacity:1;transform:none;filter:none}}
+.bigbtn{padding:16px 34px;font-size:15px;letter-spacing:4px}
+/* AR */
+#ar{position:fixed;inset:0;z-index:50;background:#000}
+#ar.hidden,#modal.hidden{display:none}
+#arVideo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#arCanvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.ar-top{position:absolute;top:calc(12px + env(safe-area-inset-top));left:12px;right:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;z-index:2}
+.ar-msg{position:absolute;bottom:calc(18px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:rgba(5,10,20,.85);border:1px solid var(--line2);padding:8px 14px;font-size:12px;color:var(--dim);width:max-content;max-width:90%;text-align:center;z-index:2}
+/* modal + toasts */
+#modal{position:fixed;inset:0;z-index:40;background:rgba(2,5,10,.72);display:flex;align-items:center;justify-content:center;padding:16px}
+.modal-box{width:min(640px,100%);max-height:90vh;overflow:auto;padding:20px}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:16px;letter-spacing:3px;text-transform:uppercase;color:var(--gold)}
+.modal-head button{background:none;border:none;color:var(--dim);font-size:18px}
+#toasts{position:fixed;top:74px;left:50%;transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{background:linear-gradient(90deg,#3f2c0a,#1a2c44);border:1px solid var(--gold);padding:10px 20px;font-size:13px;letter-spacing:1.5px;animation:pop .4s ease;box-shadow:0 0 20px rgba(232,184,74,.3);white-space:nowrap}
+/* responsive */
+@media (max-width:1150px){.lab-grid{grid-template-columns:190px 1fr;grid-template-rows:minmax(320px,1fr) auto;height:auto;min-height:100%}.lab-data{grid-column:1/3}
+.orbit-grid{grid-template-columns:1fr;height:auto}.orrery-wrap{min-height:400px;flex:none;height:440px}.orbit-right{overflow:visible}}
+@media (max-width:760px){#app{grid-template-columns:1fr;grid-template-rows:auto 1fr 62px}
+#topbar{grid-column:1;flex-wrap:wrap;padding:6px 10px;gap:4px}.brand .t2{display:none}.logo-hex{width:28px;height:32px;font-size:15px}.brand .t1{font-size:12px}
+.hudstats{margin-left:0;width:100%;height:auto}.hstat{min-width:0;flex:1;padding:2px 8px}.hstat .val{font-size:16px}.hstat:first-child{border-left:none}
+#sidenav{grid-row:3;flex-direction:row;justify-content:space-around;padding:0;border-right:none;border-top:1px solid var(--line)}
+.navbtn{padding:8px 2px;font-size:8px;flex:1;gap:3px}.navbtn.active::before{left:10px;right:10px;top:0;bottom:auto;width:auto;height:3px}.navbtn svg{width:22px;height:22px}
+.ov-tl{width:calc(100% - 28px)}.ov-r{top:auto;bottom:66px;left:14px;right:14px;width:auto;max-height:42%}
+.lab-grid{grid-template-columns:1fr;grid-template-rows:auto 300px auto}.lab-list{display:flex;flex-wrap:wrap;gap:2px;overflow:visible}.lab-list .grp{width:100%}.lab-data{grid-column:1}
+.choices{grid-template-columns:1fr}.fc-text{font-size:17px}#toasts{top:120px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="topbar">
+    <div class="brand">
+      <div class="logo-hex">☉</div>
+      <div><div class="t1">LA SOLAR SYSTEM</div><div class="t2">CADET COMMAND · SCALE 1 : 55,000,000</div></div>
+    </div>
+    <div class="hudstats">
+      <div class="hstat"><div class="lbl">AU TRAVELED</div><div class="val" id="hudAU">0.00</div><div class="sub" id="hudKm">0.0 km scaled</div></div>
+      <div class="hstat"><div class="lbl">PLANETS VISITED</div><div class="val" id="hudVisited">0<span>/8</span></div><div class="pips" id="hudPips"></div></div>
+      <div class="hstat"><div class="lbl">BADGES <span id="hudBadgeCount">0/15</span></div><div class="hexrow" id="hudBadges"></div><div class="sub" id="hudRank">RANK · CADET</div></div>
+    </div>
+  </header>
+
+  <nav id="sidenav">
+    <button class="navbtn active" data-view="explore"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>Explore</button>
+    <button class="navbtn" data-view="lab"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M7.5 15h9"/></svg>Science Lab</button>
+    <button class="navbtn" data-view="orbit"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><ellipse cx="12" cy="12" rx="10" ry="4.5"/><circle cx="20.5" cy="10" r="1.3"/></svg>Orbit Lab</button>
+    <button class="navbtn" data-view="missions"><svg viewBox="0 0 24 24"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9z"/><path d="M12 7l1.5 3 3.3.4-2.4 2.3.6 3.3-3-1.6-3 1.6.6-3.3-2.4-2.3 3.3-.4z"/></svg>Mission Control</button>
+    <button class="navbtn" data-view="facts"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg>Space Facts</button>
+  </nav>
+
+  <main id="views">
+    <!-- EXPLORE -->
+    <section id="view-explore" class="view active">
+      <canvas id="mapCanvas"></canvas>
+      <div class="ov ov-tl hud" id="exploreCtl">
+        <button class="collapse" id="ctlCollapse" title="Collapse">▾</button>
+        <div class="h-title">Navigation</div>
+        <div class="seg"><button class="btn on" id="modeSim">Simulated</button><button class="btn" id="modeGps">Live GPS</button></div>
+        <div class="seg"><button class="btn on" id="laySites">LASSP Sites</button><button class="btn" id="layLive">Today's Orbits</button></div>
+        <div id="ctlBody">
+          <button class="btn gold full" id="arBtn" style="margin-top:2px">◉ Open AR Viewer</button>
+          <p class="note" id="modeNote" style="margin-top:10px"></p>
+        </div>
+      </div>
+      <div class="ov ov-tc"><div class="status-pill" id="gpsStatus"></div></div>
+      <div class="ov ov-bl">
+        <button class="btn ghost iconbtn" id="zoomIn" title="Zoom in">+</button>
+        <button class="btn ghost iconbtn" id="zoomOut" title="Zoom out">−</button>
+        <button class="btn ghost iconbtn" id="centerMe" title="Center on me">◎</button>
+        <button class="btn ghost iconbtn" id="fitAll" title="Show whole system">⤢</button>
+      </div>
+      <div class="ov ov-r hud" id="exploreInfo"></div>
+    </section>
+
+    <!-- SCIENCE LAB -->
+    <section id="view-lab" class="view">
+      <div class="lab-grid">
+        <div class="hud lab-list" id="labList"></div>
+        <div class="hud lab-viewer"><canvas id="labCanvas"></canvas><div class="viewer-title" id="labTitle"></div></div>
+        <div class="hud lab-data" id="labData"></div>
+      </div>
+    </section>
+
+    <!-- ORBIT LAB -->
+    <section id="view-orbit" class="view">
+      <div class="orbit-grid">
+        <div class="orbit-left">
+          <div class="hud orrery-wrap"><canvas id="orreryCanvas"></canvas></div>
+          <div class="hud" id="dayYearTable"></div>
+        </div>
+        <div class="orbit-right">
+          <div class="hud" id="timeCtl"></div>
+          <div class="hud" id="orbitCard"></div>
+          <div class="hud" id="ageCalc"></div>
+          <div class="hud" id="keplerBox"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MISSION CONTROL -->
+    <section id="view-missions" class="view"><div class="mc-wrap" id="mcWrap"></div></section>
+
+    <!-- SPACE FACTS -->
+    <section id="view-facts" class="view">
+      <div class="facts-wrap">
+        <div class="h-title" style="width:100%;max-width:660px">Space Facts Transmission</div>
+        <div class="hud factcard" id="factCard">
+          <div class="fc-tag" id="factTag">INCOMING TRANSMISSION</div>
+          <div class="fc-text" id="factText">Press the button to receive a space fact from Cadet Command.</div>
+        </div>
+        <button class="btn gold bigbtn" id="factBtn">⟡ Generate Fact</button>
+        <div class="note" id="factCount">Facts discovered: 0</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="ar" class="hidden">
+  <video id="arVideo" playsinline muted autoplay></video>
+  <canvas id="arCanvas"></canvas>
+  <div class="ar-top"><div class="status-pill show" id="arHeading">HEADING —</div><button class="btn gold" id="arClose">✕ Exit AR</button></div>
+  <div class="ar-msg" id="arMsg"></div>
+</div>
+<div id="modal" class="hidden"><div class="modal-box hud"><div class="modal-head"><span id="modalTitle"></span><button id="modalClose">✕</button></div><div id="modalBody"></div></div></div>
+<div id="toasts"></div>
+
+<script>
+'use strict';
+/* =====================================================================
+   LA SOLAR SYSTEM — CADET COMMAND
+   Scale 1:55,000,000 · Sun = Griffith Observatory
+   Config blocks to edit: SITES (installation locations), MISSIONS (curriculum), FACTS
+   ===================================================================== */
+const $=s=>document.querySelector(s);
+const TAU=Math.PI*2, D2R=Math.PI/180;
+const SCALE=55e6, AU_KM=149597870.7, KM_AU=AU_KM/SCALE;      // 1 AU = 2.72 km at scale
+const LIGHT_MPS=299792458/SCALE;                               // scaled light speed ≈ 5.45 m/s ≈ 12.2 mph
+const GRIFFITH={lat:34.1184,lon:-118.3004};
+const J2000=Date.UTC(2000,0,1,12), DAY_MS=864e5;
+
+/* ---------- LASSP INSTALLATION SITES ----------
+   confirmed:true  = known site (lat/lon)
+   confirmed:false = placeholder at the correct scaled distance along a bearing (deg from north). Replace with real sites. */
+const SITES={
+  mercury:{bearing:225,label:'Placeholder site',confirmed:false},
+  venus:  {bearing:225,label:'Placeholder site',confirmed:false},
+  earth:  {bearing:225,label:'Placeholder site',confirmed:false},
+  mars:   {bearing:225,label:'Placeholder site',confirmed:false},
+  jupiter:{lat:34.1505,lon:-118.1667,label:'Kidspace Children’s Museum, Pasadena',confirmed:true},
+  saturn: {bearing:135,label:'Placeholder site',confirmed:false},
+  uranus: {bearing:90, label:'Placeholder site',confirmed:false},
+  neptune:{lat:33.3428,lon:-118.3278,label:'Avalon, Catalina Island',confirmed:true}
+};
+
+/* ---------- utilities ---------- */
+function hexA(h,a){const n=parseInt(h.slice(1),16);return `rgba(${n>>16},${(n>>8)&255},${n&255},${a})`;}
+function rng(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19;}
+  return()=>{h=Math.imul(h^(h>>>16),2246822507);h=Math.imul(h^(h>>>13),3266489909);h^=h>>>16;return(h>>>0)/4294967296;};}
+function meanLon(p,ms){const d=(ms-J2000)/DAY_MS;return((p.L0+360*d/p.period)%360+360)%360;}
+function fmtKm(km){if(km<1)return Math.round(km*1000)+' m';if(km<10)return km.toFixed(2)+' km';return km.toFixed(1)+' km';}
+function fmtSize(m){return m<1?(m*100).toFixed(1)+' cm':m.toFixed(2)+' m';}
+function fmtMin(sec){if(sec<60)return Math.round(sec)+' s';if(sec<3600)return (sec/60).toFixed(1)+' min';return (sec/3600).toFixed(1)+' hr';}
+const DIRS=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+function compass(deg){return DIRS[Math.round((((deg%360)+360)%360)/22.5)%16];}
+function makeStars(n,seed){const r=rng(seed);return Array.from({length:n},()=>({x:r(),y:r(),s:r()*1.2+.3,a:r()*.6+.2}));}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function fitCanvas(cv){const r=cv.getBoundingClientRect();const dpr=Math.min(2,window.devicePixelRatio||1);
+  const w=Math.max(1,Math.round(r.width)),h=Math.max(1,Math.round(r.height));
+  if(cv.width!==w*dpr||cv.height!==h*dpr){cv.width=w*dpr;cv.height=h*dpr;}
+  const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);return{w,h,ctx};}
+function localFrom(o,lat,lon){return{x:(lon-o.lon)*111.32*Math.cos(o.lat*D2R),y:(lat-o.lat)*110.574};}
+function bearingOf(dx,dy){return(Math.atan2(dx,dy)/D2R+360)%360;}
+
+/* ---------- WORLD DATA ---------- */
+const BODIES=[
+{id:'mercury',name:'Mercury',group:'planet',cls:'Terrestrial planet',au:0.387,km:4879,L0:252.2503,period:87.969,solarDayH:4222.6,rotH:1407.6,ecc:0.206,tilt:0.03,speed:47.4,g:3.7,moons:'0',density:5.43,temp:'−180 to 430 °C',
+ colors:['#d8ccbf','#958879','#4a4038'],style:'rocky',
+ atm:[['O₂','Oxygen',42],['Na','Sodium',29],['H₂','Hydrogen',22],['He','Helium',6],['K','Potassium',0.5]],atmNote:'Exosphere only — so thin it is almost a vacuum.',
+ surface:'Cratered silicate rock over an enormous iron core that fills about 85% of the planet’s radius.',materials:['Silicate rock','Iron core','Polar water ice'],elements:['Fe','Si','O','Na','K','He'],
+ fact:'Despite being closest to the Sun, Mercury has water ice hiding in permanently shadowed craters at its poles.',
+ orbitFact:'Mercury has the most stretched (eccentric) orbit of any planet — its distance from the Sun swings between 46 and 70 million km. One sunrise-to-sunrise day lasts 176 Earth days: two full Mercury years!'},
+{id:'venus',name:'Venus',group:'planet',cls:'Terrestrial planet',au:0.723,km:12104,L0:181.9791,period:224.701,solarDayH:2802.0,rotH:-5832.5,ecc:0.007,tilt:177.4,speed:35.0,g:8.9,moons:'0',density:5.24,temp:'464 °C',
+ colors:['#f6e3b0','#d8b46a','#8a6a30'],style:'cloud',
+ atm:[['CO₂','Carbon dioxide',96.5],['N₂','Nitrogen',3.5]],atmNote:'Crushing pressure — 92× Earth’s. Clouds of sulfuric acid (H₂SO₄).',
+ surface:'Volcanic basalt plains under a runaway greenhouse effect. The surface is hot enough to melt lead.',materials:['Basalt','Sulfuric acid clouds','Iron core'],elements:['C','O','N','S','Fe','Si'],
+ fact:'Venus is the hottest planet — even hotter than Mercury — because its thick CO₂ atmosphere traps heat.',
+ orbitFact:'Venus spins backwards, and so slowly that it takes longer to rotate once (243 Earth days) than to orbit the Sun (225 days). It has the most circular orbit of any planet.'},
+{id:'earth',name:'Earth',group:'planet',cls:'Terrestrial planet',au:1.0,km:12742,L0:100.4646,period:365.256,solarDayH:24.0,rotH:23.93,ecc:0.017,tilt:23.4,speed:29.8,g:9.8,moons:'1',density:5.51,temp:'15 °C (average)',
+ colors:['#7fc0ff','#2e72d2','#0c2a60'],style:'earth',
+ atm:[['N₂','Nitrogen',78.08],['O₂','Oxygen',20.95],['Ar','Argon',0.93],['CO₂','Carbon dioxide',0.04]],atmNote:'The only known breathable atmosphere — its oxygen was made by life.',
+ surface:'Liquid water oceans cover 71% of the surface; a rocky crust floats over an iron-nickel core.',materials:['Liquid water','Granite & basalt','Iron-nickel core'],elements:['N','O','Ar','C','Fe','Si'],
+ fact:'Earth is the densest planet in the solar system, thanks to its big metal core.',
+ orbitFact:'Earth’s 23.4° tilt — not its distance from the Sun — causes the seasons. We are actually closest to the Sun in early January!'},
+{id:'mars',name:'Mars',group:'planet',cls:'Terrestrial planet',au:1.524,km:6779,L0:355.4466,period:686.98,solarDayH:24.66,rotH:24.62,ecc:0.094,tilt:25.2,speed:24.1,g:3.7,moons:'2',density:3.93,temp:'−65 °C (average)',
+ colors:['#f0a070','#c4532c','#5e2412'],style:'rocky',
+ atm:[['CO₂','Carbon dioxide',95.1],['N₂','Nitrogen',2.6],['Ar','Argon',1.9],['O₂','Oxygen',0.16]],atmNote:'Very thin — less than 1% of Earth’s air pressure.',
+ surface:'Iron oxide (rust) dust over basalt rock, with water ice in its polar caps and underground.',materials:['Iron oxide dust','Basalt','Polar ice caps'],elements:['C','O','N','Ar','Fe','Si'],
+ fact:'Olympus Mons on Mars is the tallest volcano in the solar system — about 2.5 times the height of Mount Everest.',
+ orbitFact:'A Mars day is only about 40 minutes longer than Earth’s, but its year lasts 687 Earth days, so each season lasts roughly twice as long. Its 25° tilt is close to Earth’s, so it has seasons too.'},
+{id:'jupiter',name:'Jupiter',group:'planet',cls:'Gas giant',au:5.203,km:139820,L0:34.3964,period:4332.59,solarDayH:9.93,rotH:9.93,ecc:0.049,tilt:3.1,speed:13.1,g:24.8,moons:'95+',density:1.33,temp:'−110 °C (cloud tops)',
+ colors:['#f3e0c4','#d2a273','#8a5c3a'],style:'banded',
+ atm:[['H₂','Hydrogen',89.8],['He','Helium',10.2]],atmNote:'Trace methane (CH₄) and ammonia (NH₃) form its colorful cloud bands.',
+ surface:'No solid surface — deep inside, hydrogen is squeezed into a liquid metal.',materials:['Hydrogen gas','Ammonia clouds','Metallic hydrogen'],elements:['H','He','C','N'],
+ fact:'Jupiter’s Great Red Spot is a storm wider than the entire Earth.',
+ orbitFact:'Jupiter spins faster than any planet — a day is under 10 hours — which makes it bulge at the equator. It takes about 12 Earth years to orbit the Sun.'},
+{id:'saturn',name:'Saturn',group:'planet',cls:'Gas giant',au:9.537,km:116460,L0:49.9542,period:10759.22,solarDayH:10.66,rotH:10.66,ecc:0.057,tilt:26.7,speed:9.7,g:10.4,moons:'274',density:0.69,temp:'−140 °C (cloud tops)',
+ colors:['#f5e6bd','#d8bd84','#9a7e4a'],style:'banded',
+ atm:[['H₂','Hydrogen',96.3],['He','Helium',3.25],['CH₄','Methane',0.45]],atmNote:'Its rings are countless chunks of water ice and rock.',
+ surface:'No solid surface — a small rocky core wrapped in metallic and molecular hydrogen.',materials:['Hydrogen gas','Water-ice rings','Rocky core'],elements:['H','He','C','O'],
+ fact:'Saturn is less dense than water — in a big enough bathtub, it would float!',
+ orbitFact:'Because of Saturn’s 26.7° tilt, we see its rings from changing angles during its 29-year orbit. About every 15 years the rings turn edge-on and nearly vanish — this last happened in March 2025.'},
+{id:'uranus',name:'Uranus',group:'planet',cls:'Ice giant',au:19.19,km:50724,L0:313.2381,period:30688.5,solarDayH:17.24,rotH:-17.24,ecc:0.046,tilt:97.8,speed:6.8,g:8.9,moons:'28+',density:1.27,temp:'−195 °C',
+ colors:['#d4f6f8','#93d9e0','#468e9a'],style:'ice',
+ atm:[['H₂','Hydrogen',82.5],['He','Helium',15.2],['CH₄','Methane',2.3]],atmNote:'Methane absorbs red light, giving Uranus its blue-green color.',
+ surface:'An “ice giant”: a slushy mantle of water, ammonia, and methane ices around a rocky core.',materials:['Water ice','Ammonia ice','Methane'],elements:['H','He','C','N','O'],
+ fact:'Uranus is tipped on its side, so it rolls around the Sun like a bowling ball.',
+ orbitFact:'Tipped 98°, Uranus orbits on its side. Each pole gets about 42 years of nonstop sunlight, then 42 years of darkness.'},
+{id:'neptune',name:'Neptune',group:'planet',cls:'Ice giant',au:30.07,km:49244,L0:304.8800,period:60190,solarDayH:16.11,rotH:16.11,ecc:0.010,tilt:28.3,speed:5.4,g:11.2,moons:'16',density:1.64,temp:'−200 °C',
+ colors:['#8fb0ff','#4467e0','#192c80'],style:'ice',
+ atm:[['H₂','Hydrogen',80],['He','Helium',19],['CH₄','Methane',1.5]],atmNote:'Methane makes it deep blue; winds reach about 2,000 km/h.',
+ surface:'Ice giant with a hot, dense mantle of water, ammonia, and methane around a rocky core.',materials:['Water ice','Ammonia ice','Methane'],elements:['H','He','C','N','O'],
+ fact:'Neptune was discovered with math! Astronomers predicted where it should be before anyone saw it in 1846.',
+ orbitFact:'Neptune takes 165 Earth years to orbit once. It finished its first full orbit since its 1846 discovery in 2011.'},
+{id:'pluto',name:'Pluto',group:'dwarf',cls:'Dwarf planet',au:39.48,km:2377,density:1.85,temp:'−230 °C',g:0.62,moons:'5',
+ colors:['#f2e0cc','#c9a486','#6a4e3e'],style:'rocky',
+ atm:[['N₂','Nitrogen',99],['CH₄','Methane',0.5],['CO','Carbon monoxide',0.05]],atmNote:'Extremely thin. It freezes onto the surface as Pluto moves farther from the Sun.',
+ surface:'Mountains of water ice and glaciers of frozen nitrogen — including the heart-shaped plain Sputnik Planitia.',materials:['Nitrogen ice','Methane ice','Water-ice mountains'],elements:['N','C','O','H'],
+ fact:'NASA’s New Horizons gave us our first close-up look at Pluto in July 2015.'},
+{id:'ceres',name:'Ceres',group:'dwarf',cls:'Dwarf planet · asteroid belt',au:2.77,km:940,density:2.16,temp:'−105 °C (average)',g:0.28,moons:'0',
+ colors:['#b3ada6','#78736d','#3a3734'],style:'rocky',atm:null,atmNote:'No atmosphere.',
+ surface:'Rock mixed with clays and water ice. Its famous bright spots are salty deposits of sodium carbonate.',materials:['Clay minerals','Water ice','Sodium carbonate salt'],elements:['O','H','C','Na','Mg'],
+ fact:'Ceres is the largest object in the asteroid belt — about 940 km across.'},
+{id:'vesta',name:'Vesta',group:'asteroid',cls:'Asteroid',au:2.36,km:525,density:3.46,temp:'−190 to −20 °C',g:0.25,moons:'0',
+ colors:['#cdbda6','#8f8070','#463c33'],style:'rocky',atm:null,atmNote:'No atmosphere.',
+ surface:'A layered mini-planet: a basalt lava crust, a rocky mantle, and an iron-nickel core.',materials:['Basalt','Pyroxene minerals','Iron-nickel core'],elements:['Fe','Ni','Si','Mg','O'],
+ fact:'Some meteorites found on Earth came from Vesta — blasted off by a giant impact long ago.'},
+{id:'psyche',name:'Psyche',group:'asteroid',cls:'Metal-rich asteroid',au:2.92,km:220,density:3.9,temp:'Very cold (≈ −100 °C est.)',g:0.14,moons:'0',
+ colors:['#d8d8dc','#9a9aa2','#4a4a52'],style:'metal',atm:null,atmNote:'No atmosphere.',
+ surface:'Possibly the exposed metal core of an early planet — rich in iron and nickel.',materials:['Iron','Nickel','Rock'],elements:['Fe','Ni','Si','O'],
+ fact:'NASA’s Psyche spacecraft launched in 2023 and is scheduled to arrive at the asteroid in 2029.'}
+];
+const PLANETS=BODIES.filter(b=>b.group==='planet');
+const BY_ID=Object.fromEntries(BODIES.map(b=>[b.id,b]));
+const SUN={id:'sun',name:'The Sun',cls:'G-type star',km:1392700,au:0,colors:['#fff6d0','#ffc640','#e07a10']};
+
+const ELEMENTS={
+ H:[1,'Hydrogen',1.008,'The most abundant element in the universe. The Sun fuses it into helium to make energy.','#5fd4ff'],
+ He:[2,'Helium',4.003,'Discovered in the Sun’s light (1868) before it was ever found on Earth.','#5fd4ff'],
+ C:[6,'Carbon',12.011,'The backbone of all known life. Combines with oxygen to make CO₂ and with hydrogen to make methane.','#9fe06a'],
+ N:[7,'Nitrogen',14.007,'Makes up 78% of Earth’s air — and freezes into glaciers on Pluto.','#9fe06a'],
+ O:[8,'Oxygen',15.999,'Made by plants and algae on Earth. On Mars, it’s locked up in rust.','#9fe06a'],
+ Na:[11,'Sodium',22.990,'Glows yellow-orange. Mercury has a faint sodium “tail” streaming away from the Sun.','#e8b84a'],
+ Mg:[12,'Magnesium',24.305,'A key ingredient in rocky minerals like olivine.','#e8b84a'],
+ Si:[14,'Silicon',28.085,'Silicate rocks build the crusts and mantles of rocky worlds.','#c39bff'],
+ S:[16,'Sulfur',32.06,'Forms the sulfuric acid clouds of Venus and paints Jupiter’s moon Io yellow.','#9fe06a'],
+ Ar:[18,'Argon',39.948,'A noble gas — about 1% of Earth’s air and 2% of Mars’ air.','#5fd4ff'],
+ K:[19,'Potassium',39.098,'A reactive metal detected in Mercury’s thin exosphere.','#e8b84a'],
+ Fe:[26,'Iron',55.845,'Forms the cores of rocky planets. Iron oxide (rust) makes Mars red.','#ff8a6a'],
+ Ni:[28,'Nickel',58.693,'Partners with iron in planetary cores and metal asteroids like Psyche.','#ff8a6a']
+};
+
+const LANDMARKS=[['Hollywood Sign',34.1341,-118.3215],['Downtown LA',34.0537,-118.2427],['Dodger Stadium',34.0739,-118.2400],
+ ['Santa Monica Pier',34.0094,-118.4973],['LAX',33.9416,-118.4085],['NASA JPL',34.2013,-118.1714],['Mt. Wilson Observatory',34.2244,-118.0572],
+ ['Burbank',34.1808,-118.3090],['Long Beach',33.7701,-118.1937],['Pomona',34.0551,-117.7500],['Malibu',34.0259,-118.7798],
+ ['Santa Clarita',34.3917,-118.5426],['Anaheim',33.8366,-117.9143],['Riverside',33.9806,-117.3755],['San Bernardino',34.1083,-117.2898],['Two Harbors',33.4430,-118.4980]];
+const COAST=[[34.09,-119.10],[34.04,-118.94],[34.035,-118.80],[34.036,-118.68],[34.03,-118.57],[34.009,-118.498],[33.985,-118.473],[33.962,-118.458],
+ [33.915,-118.425],[33.86,-118.40],[33.84,-118.39],[33.80,-118.40],[33.772,-118.42],[33.74,-118.41],[33.715,-118.33],[33.708,-118.285],[33.74,-118.26],
+ [33.76,-118.20],[33.755,-118.15],[33.74,-118.10],[33.70,-118.05],[33.655,-118.00],[33.61,-117.93],[33.59,-117.87],[33.54,-117.78],[33.46,-117.70],[33.39,-117.59],[33.20,-117.38]];
+const CATALINA=[[33.478,-118.605],[33.45,-118.53],[33.44,-118.49],[33.41,-118.43],[33.38,-118.37],[33.345,-118.325],[33.32,-118.31],[33.30,-118.32],
+ [33.31,-118.36],[33.35,-118.42],[33.39,-118.48],[33.43,-118.55],[33.46,-118.60]];
+/* ---------- SPACE FACTS (edit freely) ---------- */
+const FACTS=[
+['LA Solar System','At 1:55,000,000 scale, the Sun at Griffith Observatory would be about 25 meters wide, and Earth would be a 23 cm ball about 2.7 km away.'],
+['LA Solar System','At this scale, light travels about 5.45 meters per second — roughly 12 mph, the speed of a relaxed bike ride.'],
+['LA Solar System','Scaled down 55 million times, Neptune lands about 82 km from Griffith Observatory — out by Catalina Island.'],
+['LA Solar System','At 1:55,000,000 scale, the nearest star, Proxima Centauri, would be about 730,000 km away — almost twice the real distance to the Moon!'],
+['LA Solar System','Griffith Observatory opened to the public in 1935 and has welcomed millions of visitors to look through its telescopes.'],
+['The Sun','The Sun holds about 99.8% of all the mass in the solar system.'],
+['The Sun','About 1.3 million Earths could fit inside the Sun.'],
+['The Sun','Sunlight takes about 8 minutes and 20 seconds to reach Earth.'],
+['Mercury','A year on Mercury lasts just 88 Earth days.'],
+['Mercury','On Mercury, one sunrise-to-sunrise day lasts 176 Earth days — that is two whole Mercury years.'],
+['Venus','Venus takes longer to spin once on its axis (243 Earth days) than to orbit the Sun (225 days).'],
+['Venus','Venus is the hottest planet at about 464 °C, even though Mercury is closer to the Sun.'],
+['Venus','Venus and Uranus both spin “backwards” compared to most planets.'],
+['Earth','Earth is the densest planet in the solar system.'],
+['Earth','The Moon drifts about 3.8 cm farther from Earth every year.'],
+['Earth','Astronauts on the International Space Station see about 16 sunrises and 16 sunsets every day.'],
+['Earth','The ISS travels about 28,000 km/h — fast enough to circle Earth in about 90 minutes.'],
+['Mars','Mars looks red because its dust is full of iron oxide — rust!'],
+['Mars','Sunsets on Mars look blue, because fine Martian dust scatters blue light toward the setting Sun.'],
+['Mars','Mars has two tiny moons, Phobos and Deimos. Phobos is slowly spiraling inward toward Mars.'],
+['Jupiter','Jupiter has the shortest day of any planet — less than 10 hours.'],
+['Jupiter','Jupiter’s moon Ganymede is bigger than the planet Mercury.'],
+['Jupiter','Jupiter’s moon Europa likely hides a salty ocean under its icy crust — with more water than all of Earth’s oceans.'],
+['Saturn','Saturn has 274 confirmed moons — the most of any planet.'],
+['Saturn','Saturn’s rings stretch about 280,000 km across, yet in many places they are only tens of meters thick.'],
+['Saturn','Saturn’s moon Titan has lakes and seas of liquid methane and ethane.'],
+['Saturn','Saturn’s moon Enceladus shoots geysers of icy water out of its south pole.'],
+['Uranus','Uranus is tilted about 98°, so each pole gets 42 years of sunlight followed by 42 years of darkness.'],
+['Neptune','Neptune has the fastest winds in the solar system — around 2,000 km/h.'],
+['Neptune','Light from the Sun takes about 4 hours to reach Neptune.'],
+['Neptune','All four giant planets — Jupiter, Saturn, Uranus, and Neptune — have rings.'],
+['Dwarf Planets','Pluto’s year lasts 248 Earth years. It hasn’t finished a single orbit since it was discovered in 1930.'],
+['Dwarf Planets','Pluto has a giant heart-shaped region; its left side is a vast plain of frozen nitrogen called Sputnik Planitia.'],
+['Asteroids','The asteroid belt is mostly empty space. Spacecraft fly through it without having to dodge rocks.'],
+['Asteroids','Ceres, the largest object in the asteroid belt, is about 940 km wide and counts as a dwarf planet.'],
+['Missions','Voyager 1 is the most distant human-made object — nearly 26 billion km away, about one light-day from Earth.'],
+['Missions','NASA’s Parker Solar Probe reached about 690,000 km/h in December 2024, the fastest speed of any human-made object.'],
+['Missions','Footprints left on the Moon by Apollo astronauts could last millions of years, because there is no wind or rain to erase them.'],
+['Missions','Voyager 2 is the only spacecraft ever to visit Uranus and Neptune.'],
+['Space Science','Space is silent: sound needs air (or another material) to travel through.'],
+['Space Science','A light-year — the distance light travels in a year — is about 9.46 trillion km.'],
+['Space Science','Kepler’s Third Law: square a planet’s year (in Earth years) and you get the cube of its distance from the Sun (in AU).']
+];
+
+/* ---------- MISSION CONTROL CURRICULUM (edit / extend) ----------
+   track(): returns [current,total] for auto-tracked missions
+   kind:'numeric'|'choice'|'exam' for in-panel questions */
+const NGSS={'MS-ESS1-2':'Gravity’s role in the motions of the solar system','MS-ESS1-3':'Scale properties of objects in the solar system',
+ 'MS-PS2-4':'Gravitational interactions depend on mass','MS-PS1-1':'Atoms and molecules make up substances'};
+const TIERS=['Cadet Training','Navigator Training','Pilot Training','Commander Training','Space Pro Certification'];
+const RANKS=['Cadet','Navigator','Pilot','Commander','Space Pro','Certified Space Pro'];
+const RANK_ICONS=['🌱','🧭','🛩️','🎖️','🚀','🌟'];
+const INNER=['mercury','venus','earth','mars'];
+const vcount=ids=>ids.filter(i=>S.visited[i]).length;
+const MISSIONS=[
+{id:'first-contact',tier:0,icon:'🛸',title:'First Contact',ngss:'MS-ESS1-3',go:'explore',goal:'Reach 1 planet other than Earth',
+ brief:'Every journey starts at home. Leave Earth and reach any other planet on the Explore map — fly there in Simulated mode, or walk/ride there for real with Live GPS.',
+ track:()=>[Math.min(1,PLANETS.filter(p=>p.id!=='earth'&&S.visited[p.id]).length),1]},
+{id:'neighborhood',tier:0,icon:'🔭',title:'Know the Neighborhood',ngss:'MS-ESS1-3',go:'explore',goal:'Scan Mercury, Venus, Earth & Mars',
+ brief:'Tap each of the four rocky inner planets on the Explore map to scan it. Notice how close together they are compared to the giants!',
+ track:()=>[INNER.filter(i=>S.scanned[i]).length,4]},
+{id:'fact-finder',tier:0,icon:'💡',title:'Fact Finder',ngss:'MS-ESS1-3',go:'facts',goal:'Discover 5 space facts',
+ brief:'Open a channel to Cadet Command and receive five space fact transmissions.',
+ track:()=>[Math.min(5,S.facts.length),5]},
+{id:'scale-sense',tier:1,icon:'📐',title:'Scale Sense',ngss:'MS-ESS1-3',kind:'numeric',unit:'km',answer:4.13,tol:0.25,
+ brief:'In the LA Solar System, everything is shrunk 55,000,000 times. That makes 1 AU (the Earth–Sun distance) equal to about 2.72 km.',
+ q:'Mars orbits at 1.52 AU. How many kilometers from Griffith Observatory (the Sun) should Mars be placed?',
+ hint:'Multiply the distance in AU by 2.72 km per AU.',explain:'1.52 AU × 2.72 km/AU ≈ 4.13 km.'},
+{id:'inner-circuit',tier:1,icon:'🪐',title:'Inner Circuit',ngss:'MS-ESS1-3',go:'explore',goal:'Visit all 4 inner planets',
+ brief:'Visit Mercury, Venus, Earth, and Mars. At LA scale they all fit within about 4 km of Griffith Observatory.',
+ track:()=>[vcount(INNER),4]},
+{id:'element-analyst',tier:1,icon:'⚗️',title:'Element Analyst',ngss:'MS-PS1-1',go:'lab',goal:'Analyze 5 worlds in the Science Lab',
+ brief:'Open the Science Lab and study what five different worlds are made of. Tap element tiles to learn about the atoms involved.',
+ track:()=>[Math.min(5,Object.keys(S.labSeen).length),5]},
+{id:'spectral',tier:2,icon:'🌈',title:'Spectral Detective',ngss:'MS-PS1-1',go:'lab',goal:'Score 4/5 in the Spectral Detective challenge',
+ brief:'Scientists identify worlds by the gases in their atmospheres. In the Science Lab, launch Spectral Detective and identify mystery planets from their gas readings.',
+ track:()=>[S.flags.spectral?1:0,1]},
+{id:'time-keeper',tier:2,icon:'⏳',title:'Time Keeper',ngss:'MS-ESS1-2',go:'orbit',goal:'Calculate your age on other planets',
+ brief:'A “year” is one trip around the Sun. Use the Age Calculator in the Orbit Lab to find out how old you would be on every planet.',
+ track:()=>[S.flags.ageCalc?1:0,1]},
+{id:'kepler',tier:2,icon:'📈',title:'Kepler’s Code',ngss:'MS-ESS1-2',go:'orbit',goal:'Solve a Kepler’s Third Law challenge',
+ brief:'In 1619 Johannes Kepler discovered a hidden pattern: T² = a³. Crack the code in the Orbit Lab.',
+ track:()=>[S.flags.kepler?1:0,1]},
+{id:'gas-giants',tier:3,icon:'🌀',title:'Gas Giant Run',ngss:'MS-ESS1-3',go:'explore',goal:'Visit Jupiter and Saturn',
+ brief:'Head out past the asteroid belt to the two biggest planets. In the LASSP layout, Jupiter sits at Kidspace Children’s Museum in Pasadena.',
+ track:()=>[vcount(['jupiter','saturn']),2]},
+{id:'gravity',tier:3,icon:'🏋️',title:'Gravity Check',ngss:'MS-PS2-4',kind:'choice',
+ brief:'More mass means more gravity. Jupiter’s surface gravity is 24.8 m/s²; Earth’s is 9.8 m/s². Your mass stays the same everywhere — but your weight changes.',
+ q:'About how many times heavier would you feel on Jupiter than on Earth?',options:['1.5×','2.5×','5×','10×'],answer:'2.5×',
+ explain:'24.8 ÷ 9.8 ≈ 2.5. A cadet who weighs 400 N on Earth would weigh about 1,000 N on Jupiter.'},
+{id:'light-delay',tier:3,icon:'📡',title:'Signal Delay',ngss:'MS-ESS1-3',kind:'numeric',unit:'hours',answer:4.15,tol:0.3,
+ brief:'Radio signals travel at the speed of light, which covers 1 AU in about 8.3 minutes.',
+ q:'Neptune is about 30 AU from the Sun. How many HOURS would a radio message take to travel 30 AU?',
+ hint:'30 × 8.3 minutes, then divide by 60.',explain:'30 × 8.3 min = 249 min ≈ 4.15 hours. At LASSP scale, that is the Lightspeed Ride to Catalina!'},
+{id:'grand-tour',tier:4,icon:'🌌',title:'Grand Tour',ngss:'MS-ESS1-3',go:'explore',goal:'Visit all 8 planets',
+ brief:'Complete a full tour of the solar system — all eight planets, from Mercury out to Neptune.',
+ track:()=>[vcount(PLANETS.map(p=>p.id)),8]},
+{id:'deep-space',tier:4,icon:'🚀',title:'Deep Space Traveler',ngss:'MS-ESS1-3',go:'explore',goal:'Travel 30 AU in total',
+ brief:'Log 30 AU of travel — the distance from the Sun to Neptune. At LA scale that is about 82 km.',
+ track:()=>[Math.min(30,Math.floor(S.au)),30]},
+{id:'final-exam',tier:4,icon:'🎓',title:'Space Pro Exam',ngss:'MS-ESS1-2',kind:'exam',pass:5,
+ brief:'Six questions covering everything you learned. Score 5 or more to earn Space Pro certification.',
+ questions:[
+  {q:'Kepler’s Third Law (T² = a³) tells us that…',options:['Planets farther from the Sun take longer to orbit','Every planet takes one year to orbit','Bigger planets always orbit faster','Orbits are perfect circles'],answer:0},
+  {q:'Which gas makes up most of Jupiter and Saturn?',options:['Hydrogen','Oxygen','Carbon dioxide','Nitrogen'],answer:0},
+  {q:'In the LA Solar System (1:55,000,000), Earth would be…',options:['A 23 cm ball about 2.7 km from Griffith','A 2 m ball 1 km from Griffith','A marble 82 km from Griffith','A 25 m ball 30 km from Griffith'],answer:0},
+  {q:'Which planet takes longer to spin once (243 days) than to orbit the Sun (225 days)?',options:['Venus','Mars','Jupiter','Neptune'],answer:0},
+  {q:'Why does Mars look red?',options:['Iron oxide (rust) in its dust','It is extremely hot','It is covered in red plants','It is close to the Sun'],answer:0},
+  {q:'What keeps the planets in orbit around the Sun?',options:['The Sun’s gravity pulls while the planets move sideways','Magnetism from the Sun','The solar wind pushes them','Nothing — they just float'],answer:0}
+ ]}
+];
+
+/* ---------- STATE ---------- */
+const STORE='lassp-cadet-v1';
+function freshState(){return{au:0,visited:{earth:Date.now()},scanned:{},labSeen:{},facts:[],done:{},flags:{},player:null,origin:null,mode:'sim',layout:'sites'};}
+let S=freshState();
+try{const raw=localStorage.getItem(STORE);if(raw)S=Object.assign(freshState(),JSON.parse(raw));}catch(e){}
+let dirty=false;
+function save(){try{localStorage.setItem(STORE,JSON.stringify(S));}catch(e){}dirty=false;}
+setInterval(()=>{if(dirty)save();},2000);
+
+/* ---------- UI helpers ---------- */
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;$('#toasts').appendChild(t);setTimeout(()=>t.remove(),3200);}
+function openModal(title,html,onMount){$('#modalTitle').textContent=title;$('#modalBody').innerHTML=html;$('#modal').classList.remove('hidden');if(onMount)onMount($('#modalBody'));}
+function closeModal(){$('#modal').classList.add('hidden');$('#modalBody').innerHTML='';}
+$('#modalClose').onclick=closeModal;
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
+
+/* ---------- GAME CORE ---------- */
+function tierUnlocked(t){return t===0||MISSIONS.filter(m=>m.tier===t-1).every(m=>S.done[m.id]);}
+function tiersDone(){let n=0;for(let t=0;t<TIERS.length;t++){if(MISSIONS.filter(m=>m.tier===t).every(m=>S.done[m.id]))n++;else break;}return n;}
+function completeMission(m){
+  if(S.done[m.id])return;
+  const before=tiersDone();
+  S.done[m.id]=Date.now();save();
+  toast(`${m.icon}  MISSION COMPLETE · ${m.title.toUpperCase()} — BADGE EARNED`);
+  const after=tiersDone();
+  if(after>before)setTimeout(()=>toast(`${RANK_ICONS[after]}  PROMOTED TO ${RANKS[after].toUpperCase()}`),900);
+  updateHUD();if(view==='missions')Missions.render();
+}
+function checkMissions(){
+  let changed=true;
+  while(changed){changed=false;
+    for(const m of MISSIONS){if(S.done[m.id]||!m.track||!tierUnlocked(m.tier))continue;
+      const[c,t]=m.track();if(c>=t){completeMission(m);changed=true;}}}
+  if(view==='missions')Missions.render();
+}
+const Game={
+  addKm(km){S.au+=km/KM_AU;dirty=true;hudAU();},
+  visit(id){if(S.visited[id])return;S.visited[id]=Date.now();save();toast(`🪐  PLANET REACHED · ${BY_ID[id].name.toUpperCase()}`);updateHUD();checkMissions();},
+  scan(id){if(S.scanned[id])return;S.scanned[id]=1;dirty=true;checkMissions();},
+  labSee(id){if(S.labSeen[id])return;S.labSeen[id]=1;dirty=true;checkMissions();},
+  flag(f){if(S.flags[f])return;S.flags[f]=1;save();checkMissions();},
+  fact(i){if(!S.facts.includes(i)){S.facts.push(i);dirty=true;checkMissions();}}
+};
+
+/* ---------- HUD ---------- */
+function hudAU(){$('#hudAU').textContent=S.au.toFixed(2);$('#hudKm').textContent=fmtKm(S.au*KM_AU)+' scaled';}
+function updateHUD(){
+  hudAU();
+  const n=vcount(PLANETS.map(p=>p.id));
+  $('#hudVisited').innerHTML=`${n}<span>/8</span>`;
+  $('#hudPips').innerHTML=PLANETS.map(p=>`<div class="pip ${S.visited[p.id]?'on':''}" title="${p.name}"></div>`).join('');
+  const earned=MISSIONS.filter(m=>S.done[m.id]).sort((a,b)=>S.done[a.id]-S.done[b.id]);
+  $('#hudBadgeCount').textContent=`${earned.length}/${MISSIONS.length}`;
+  let h='';const show=earned.slice(-6);
+  if(earned.length>6)h+=`<div class="hex more">+${earned.length-6}</div>`;
+  h+=show.map(m=>`<div class="hex" title="${m.title}">${m.icon}</div>`).join('');
+  for(let i=show.length;i<3;i++)h+='<div class="hex empty"></div>';
+  $('#hudBadges').innerHTML=h;
+  $('#hudRank').textContent='RANK · '+RANKS[tiersDone()].toUpperCase();
+}
+
+/* ---------- PLANET RENDERER ---------- */
+const FEAT={};
+function features(b){
+  if(FEAT[b.id])return FEAT[b.id];const r=rng(b.id+'f');const f=[];
+  const add=(n,col,smin,smax,vr=0.85)=>{for(let i=0;i<n;i++)f.push({u:r(),v:(r()*2-1)*vr,s:smin+r()*(smax-smin),c:col});};
+  if(b.style==='rocky'||b.style==='metal')add(16,'rgba(0,0,0,.22)',.05,.16);
+  if(b.id==='mars'){add(6,'rgba(70,20,8,.35)',.12,.3,.6);}
+  if(b.id==='earth'){add(9,'rgba(70,150,70,.85)',.14,.32,.7);add(5,'rgba(190,160,100,.6)',.08,.16,.5);add(10,'rgba(255,255,255,.55)',.06,.2,.9);}
+  if(b.id==='jupiter')f.push({u:.3,v:-.38,s:.17,c:'rgba(196,90,50,.85)',ov:1});
+  if(b.id==='neptune')f.push({u:.6,v:-.3,s:.13,c:'rgba(16,26,90,.7)',ov:1});
+  if(b.id==='pluto')f.push({u:.5,v:-.05,s:.38,c:'rgba(255,245,230,.75)'});
+  if(b.id==='venus')add(6,'rgba(255,255,230,.18)',.2,.4,.7);
+  return FEAT[b.id]=f;
+}
+function drawRings(ctx,x,y,r,front){
+  const bands=[[1.3,.25],[1.48,.55],[1.7,.75],[1.92,.45],[2.12,.6],[2.28,.3]];
+  for(const[k,a]of bands){ctx.strokeStyle=`rgba(225,205,160,${a})`;ctx.lineWidth=Math.max(1,r*.11);ctx.beginPath();
+    ctx.ellipse(x,y,r*k,r*k*.3,-.35,front?0:Math.PI,front?Math.PI:TAU);ctx.stroke();}
+}
+function drawPlanet(ctx,x,y,r,b,t=0){
+  const c=b.colors;
+  if(b.id==='sun'){const g=ctx.createRadialGradient(x,y,0,x,y,r*2.4);g.addColorStop(0,'#fffbe8');g.addColorStop(.35,'#ffd65a');g.addColorStop(.42,'rgba(255,170,40,.6)');g.addColorStop(1,'rgba(255,120,0,0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r*2.4,0,TAU);ctx.fill();return;}
+  if(b.id==='saturn')drawRings(ctx,x,y,r,false);
+  if(b.atm&&r>5){const g=ctx.createRadialGradient(x,y,r*.92,x,y,r*1.28);g.addColorStop(0,hexA(c[0],.4));g.addColorStop(1,hexA(c[0],0));ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r*1.28,0,TAU);ctx.fill();}
+  ctx.save();ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.clip();
+  const g=ctx.createRadialGradient(x-r*.3,y-r*.3,r*.1,x,y,r*1.05);g.addColorStop(0,c[0]);g.addColorStop(.6,c[1]);g.addColorStop(1,c[2]);
+  ctx.fillStyle=g;ctx.fillRect(x-r,y-r,2*r,2*r);
+  if(r>4){
+    if(b.style==='banded'||b.style==='cloud'||b.style==='ice'){
+      const n=b.style==='banded'?11:b.style==='cloud'?6:5;const rr=rng(b.id+'b');
+      for(let i=0;i<n;i++){const yy=y-r+(i+.5)*(2*r/n);const hgt=(2*r/n)*(.35+rr()*.5);
+        ctx.fillStyle=i%2?hexA(c[2],b.style==='banded'?.32:.12):hexA(c[0],b.style==='banded'?.28:.12);ctx.fillRect(x-r,yy-hgt/2,2*r,hgt);}
+    }
+    for(const f of features(b)){
+      const th=((f.u+t*.015)%1)*TAU;const ct=Math.cos(th);if(ct<=0.02)continue;
+      const lat=Math.asin(clamp(f.v,-1,1));const fx=x+r*Math.cos(lat)*Math.sin(th),fy=y-r*Math.sin(lat);
+      ctx.fillStyle=f.c;ctx.beginPath();ctx.ellipse(fx,fy,Math.max(.5,f.s*r*ct*(f.ov?1.5:1)),f.s*r*(f.ov?.8:1)*Math.cos(lat*.6),0,0,TAU);ctx.fill();}
+    if(b.id==='mars'||b.id==='earth'){ctx.fillStyle='rgba(255,255,255,.85)';ctx.beginPath();ctx.ellipse(x,y-r*.97,r*.45,r*.14,0,0,TAU);ctx.fill();}
+  }
+  const sh=ctx.createLinearGradient(x-r*.6,y-r*.6,x+r,y+r);sh.addColorStop(0,'rgba(0,0,0,0)');sh.addColorStop(.55,'rgba(0,0,0,.15)');sh.addColorStop(1,'rgba(0,0,0,.78)');
+  ctx.fillStyle=sh;ctx.fillRect(x-r,y-r,2*r,2*r);ctx.restore();
+  if(r>6){ctx.strokeStyle=hexA(c[0],.35);ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,r,Math.PI*.9,Math.PI*1.6);ctx.stroke();}
+  if(b.id==='saturn')drawRings(ctx,x,y,r,true);
+}
+
+/* ---------- NAVIGATION ---------- */
+let view='explore';
+function setView(v){
+  view=v;
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('active',s.id==='view-'+v));
+  if(v==='missions')Missions.render();
+  if(v==='orbit')Orbit.renderPanels();
+}
+document.querySelectorAll('.navbtn').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
+/* =====================================================================
+   EXPLORE — map of LA with the Sun at Griffith Observatory
+   ===================================================================== */
+const Explore=(()=>{
+  const cv=$('#mapCanvas');
+  let W=0,H=0,zoom=2,cam={x:0,y:0},sel=null,target=null,flySpeed=1,fitted=false,follow=false,heading=Math.PI;
+  let origin=S.origin||GRIFFITH;
+  const ZMIN=0.4,ZMAX=5000;
+  const stars=makeStars(260,'map');
+  const belt=(()=>{const r=rng('belt');return Array.from({length:520},()=>({a:r()*TAU,d:(2.15+r()*1.15)*KM_AU}));})();
+  const pos={};let lm=[],coast=[],cat=[],ocean=[];
+  let watch=null,lastFix=null,gpsAcc=null,gpsSpeed=null;
+
+  function siteLocal(id){const s=SITES[id],p=BY_ID[id];
+    if(s&&s.lat!=null)return localFrom(GRIFFITH,s.lat,s.lon);           // offset from the Sun (moves with the Sun if re-anchored)
+    const d=p.au*KM_AU,b=((s&&s.bearing)||200)*D2R;return{x:d*Math.sin(b),y:d*Math.cos(b)};}
+  function computePositions(){PLANETS.forEach(p=>{
+    if(S.layout==='sites')pos[p.id]=siteLocal(p.id);
+    else{const L=meanLon(p,Date.now())*D2R,d=p.au*KM_AU;pos[p.id]={x:d*Math.cos(L),y:d*Math.sin(L)};}});}
+  function computeGeo(){
+    lm=LANDMARKS.map(([n,la,lo])=>Object.assign({n},localFrom(origin,la,lo)));
+    coast=COAST.map(([la,lo])=>localFrom(origin,la,lo));cat=CATALINA.map(([la,lo])=>localFrom(origin,la,lo));
+    const f=coast[0],l=coast[coast.length-1];ocean=[...coast,{x:l.x+40,y:l.y-600},{x:f.x-600,y:l.y-600},{x:f.x-600,y:f.y}];}
+  computePositions();computeGeo();
+  const P=S.player?{...S.player}:{...pos.earth};
+  S.player={...P};
+
+  const sx=x=>W/2+(x-cam.x)*zoom, sy=y=>H/2-(y-cam.y)*zoom;
+  function extent(){return Math.max(...PLANETS.map(p=>Math.hypot(pos[p.id].x,pos[p.id].y)))*1.08;}
+  function fitAll(){cam={x:0,y:-extent()*.12};zoom=Math.min(W,H)/2/extent()*1.05;follow=false;}
+  function zoomAt(mx,my,k){const wx=cam.x+(mx-W/2)/zoom,wy=cam.y-(my-H/2)/zoom;zoom=clamp(zoom*k,ZMIN,ZMAX);cam.x=wx-(mx-W/2)/zoom;cam.y=wy+(my-H/2)/zoom;}
+  function bodyRadius(b){const minR=b.id==='sun'?8:(b.km>40000?6.5:4.5);return Math.max((b.km/2/SCALE)*zoom,minR);}
+
+  /* ----- per-frame ----- */
+  function frame(dt,now){
+    const f=fitCanvas(cv);W=f.w;H=f.h;const ctx=f.ctx;
+    if(!fitted&&W>10){fitAll();fitted=true;}
+    if(S.mode==='sim'&&target){
+      const dx=target.x-P.x,dy=target.y-P.y,d=Math.hypot(dx,dy),step=flySpeed*dt;heading=Math.atan2(dx,dy);
+      if(d<=step){Game.addKm(d);P.x=target.x;P.y=target.y;if(target.id)Game.visit(target.id);target=null;status('');}
+      else{P.x+=dx/d*step;P.y+=dy/d*step;Game.addKm(step);}
+      S.player={...P};dirty=true;
+    }
+    if(follow){cam.x+=(P.x-cam.x)*.15;cam.y+=(P.y-cam.y)*.15;}
+    const R=S.mode==='gps'?0.15:0.08;
+    for(const p of PLANETS){const q=pos[p.id];if(Math.hypot(q.x-P.x,q.y-P.y)<R)Game.visit(p.id);}
+    draw(ctx,now/1000);
+  }
+
+  function draw(ctx,t){
+    ctx.fillStyle='#03060c';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#fff';for(const s of stars){ctx.globalAlpha=s.a*.5;ctx.fillRect(s.x*W,s.y*H,s.s,s.s);}ctx.globalAlpha=1;
+    // ocean + coast + Catalina
+    ctx.beginPath();ocean.forEach((p,i)=>i?ctx.lineTo(sx(p.x),sy(p.y)):ctx.moveTo(sx(p.x),sy(p.y)));ctx.closePath();
+    ctx.fillStyle='rgba(25,70,130,.16)';ctx.fill();
+    ctx.strokeStyle='rgba(95,212,255,.35)';ctx.lineWidth=1.2;ctx.beginPath();coast.forEach((p,i)=>i?ctx.lineTo(sx(p.x),sy(p.y)):ctx.moveTo(sx(p.x),sy(p.y)));ctx.stroke();
+    ctx.beginPath();cat.forEach((p,i)=>i?ctx.lineTo(sx(p.x),sy(p.y)):ctx.moveTo(sx(p.x),sy(p.y)));ctx.closePath();
+    ctx.fillStyle='rgba(10,20,34,.9)';ctx.fill();ctx.stroke();
+    if(coast.length){const o=localFrom(origin,33.78,-118.72);ctx.fillStyle='rgba(95,212,255,.25)';ctx.font='11px Bahnschrift,Segoe UI';ctx.textAlign='center';ctx.fillText('P A C I F I C   O C E A N',sx(o.x),sy(o.y));}
+    // radial grid
+    const ox=sx(0),oy=sy(0),ext=extent()*1.05;
+    ctx.strokeStyle='rgba(95,212,255,.05)';ctx.lineWidth=1;
+    for(let a=0;a<360;a+=30){ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(ox+Math.sin(a*D2R)*ext*zoom,oy-Math.cos(a*D2R)*ext*zoom);ctx.stroke();}
+    // orbits
+    PLANETS.forEach(p=>{const q=pos[p.id];const r=Math.hypot(q.x,q.y)*zoom;
+      ctx.strokeStyle=p.id===sel?'rgba(95,212,255,.6)':'rgba(95,212,255,.16)';ctx.setLineDash(p.id===sel?[]:[4,6]);
+      ctx.beginPath();ctx.arc(ox,oy,r,0,TAU);ctx.stroke();});
+    ctx.setLineDash([]);
+    // asteroid belt
+    ctx.fillStyle='rgba(200,190,170,.35)';for(const b of belt)ctx.fillRect(ox+Math.cos(b.a)*b.d*zoom,oy-Math.sin(b.a)*b.d*zoom,1,1);
+    // landmarks
+    ctx.font='10px Bahnschrift,Segoe UI';ctx.textAlign='left';
+    for(const l of lm){const x=sx(l.x),y=sy(l.y);if(x<-50||x>W+50||y<-20||y>H+20)continue;
+      ctx.fillStyle='rgba(232,184,74,.45)';ctx.beginPath();ctx.moveTo(x,y-3);ctx.lineTo(x+3,y);ctx.lineTo(x,y+3);ctx.lineTo(x-3,y);ctx.fill();
+      ctx.fillStyle='rgba(180,195,215,.5)';ctx.fillText(l.n,x+6,y+3);}
+    // Sun
+    const sr=bodyRadius(SUN);drawPlanet(ctx,ox,oy,sr,SUN,t);
+    ctx.fillStyle='#ffe2a0';ctx.textAlign='center';ctx.font='11px Bahnschrift,Segoe UI';
+    ctx.fillText('SUN · GRIFFITH OBSERVATORY',ox,oy+sr*1.4+14);
+    // target line
+    if(target){ctx.strokeStyle='rgba(232,184,74,.7)';ctx.setLineDash([5,5]);ctx.beginPath();ctx.moveTo(sx(P.x),sy(P.y));ctx.lineTo(sx(target.x),sy(target.y));ctx.stroke();ctx.setLineDash([]);}
+    // planets
+    PLANETS.forEach(p=>{const q=pos[p.id],x=sx(q.x),y=sy(q.y);if(x<-60||x>W+60||y<-60||y>H+60)return;
+      const r=bodyRadius(p);drawPlanet(ctx,x,y,r,p,t);
+      if(S.visited[p.id]){ctx.strokeStyle='rgba(232,184,74,.75)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,r+4,0,TAU);ctx.stroke();}
+      if(p.id===sel){ctx.strokeStyle='#5fd4ff';ctx.lineWidth=1.5;const rr=r+9;
+        for(let k=0;k<4;k++){const a0=t*1.2+k*Math.PI/2;ctx.beginPath();ctx.arc(x,y,rr,a0,a0+.7);ctx.stroke();}}
+      const far=Math.hypot(x-ox,y-oy)>46;
+      if(far||p.id===sel||zoom>25){ctx.fillStyle=p.id===sel?'#5fd4ff':'#d6e4f2';ctx.font='600 11px Bahnschrift,Segoe UI';ctx.textAlign='center';
+        ctx.fillText(p.name.toUpperCase(),x,y-r-8);}});
+    // player
+    const px=sx(P.x),py=sy(P.y);
+    if(S.mode==='gps'&&gpsAcc){ctx.fillStyle='rgba(95,212,255,.08)';ctx.beginPath();ctx.arc(px,py,Math.max(4,gpsAcc/1000*zoom),0,TAU);ctx.fill();}
+    const pulse=(t*1.5)%1;ctx.strokeStyle=`rgba(232,184,74,${1-pulse})`;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(px,py,8+pulse*14,0,TAU);ctx.stroke();
+    ctx.save();ctx.translate(px,py);ctx.rotate(heading);ctx.fillStyle='#ffd36b';ctx.shadowColor='#e8b84a';ctx.shadowBlur=12;
+    ctx.beginPath();ctx.moveTo(0,-10);ctx.lineTo(7,8);ctx.lineTo(0,4);ctx.lineTo(-7,8);ctx.closePath();ctx.fill();ctx.restore();
+    // scale bar + north
+    const nice=[0.01,0.02,0.05,0.1,0.2,0.5,1,2,5,10,20,50,100];let km=nice[0];for(const n of nice)if(n*zoom<=130)km=n;
+    const bx=W-24-km*zoom,by=H-22;ctx.strokeStyle='#5fd4ff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(bx,by-5);ctx.lineTo(bx,by);ctx.lineTo(W-24,by);ctx.lineTo(W-24,by-5);ctx.stroke();
+    ctx.fillStyle='#9fb6cc';ctx.font='11px Bahnschrift,Segoe UI';ctx.textAlign='right';
+    ctx.fillText(`${km<1?km*1000+' m':km+' km'} = ${(km/KM_AU).toFixed(km/KM_AU<0.1?3:2)} AU`,W-24,by-10);
+    ctx.textAlign='center';ctx.fillStyle='#5fd4ff';ctx.fillText('N',W-24,by-46);ctx.beginPath();ctx.moveTo(W-24,by-40);ctx.lineTo(W-29,by-28);ctx.lineTo(W-19,by-28);ctx.fill();
+  }
+
+  /* ----- picking + input ----- */
+  function pick(mx,my){
+    let best=null,bd=1e9;
+    for(const p of PLANETS){const q=pos[p.id],d=Math.hypot(sx(q.x)-mx,sy(q.y)-my),thr=Math.max(16,bodyRadius(p)+8);if(d<thr&&d<bd){bd=d;best=p.id;}}
+    if(!best){const d=Math.hypot(sx(0)-mx,sy(0)-my);if(d<Math.max(16,bodyRadius(SUN)+6))best='sun';}
+    return best;}
+  function click(mx,my){
+    const id=pick(mx,my);
+    if(id){select(id);return;}
+    if(S.mode==='sim'){flyTo({x:cam.x+(mx-W/2)/zoom,y:cam.y-(my-H/2)/zoom});}
+  }
+  function flyTo(tg){const d=Math.hypot(tg.x-P.x,tg.y-P.y);flySpeed=Math.max(0.6,d/3.2);target=tg;
+    status(`IN FLIGHT · ${fmtKm(d)} · ${(d/KM_AU).toFixed(2)} AU`);}
+  function select(id){sel=id;if(id!=='sun')Game.scan(id);renderInfo();}
+  const ptrs=new Map();let down=null,panned=false,pinch=null;
+  cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.offsetX,y:e.offsetY});
+    if(ptrs.size===1){down={x:e.offsetX,y:e.offsetY,cx:cam.x,cy:cam.y};panned=false;}
+    else if(ptrs.size===2){const[a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,z:zoom};panned=true;}});
+  cv.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,{x:e.offsetX,y:e.offsetY});
+    if(ptrs.size===2&&pinch){const[a,b]=[...ptrs.values()];zoom=clamp(pinch.z*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d,ZMIN,ZMAX);}
+    else if(down){const dx=e.offsetX-down.x,dy=e.offsetY-down.y;if(Math.hypot(dx,dy)>6)panned=true;
+      if(panned){cam.x=down.cx-dx/zoom;cam.y=down.cy+dy/zoom;follow=false;}}});
+  const up=e=>{ptrs.delete(e.pointerId);if(ptrs.size===0){if(down&&!panned)click(e.offsetX,e.offsetY);down=null;pinch=null;}};
+  cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',e=>{ptrs.delete(e.pointerId);down=null;pinch=null;});
+  cv.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.offsetX,e.offsetY,Math.exp(-e.deltaY*.0015));},{passive:false});
+  $('#zoomIn').onclick=()=>zoomAt(W/2,H/2,1.6);
+  $('#zoomOut').onclick=()=>zoomAt(W/2,H/2,1/1.6);
+  $('#centerMe').onclick=()=>{follow=true;zoom=Math.max(zoom,120);};
+  $('#fitAll').onclick=fitAll;
+
+  /* ----- info panel ----- */
+  function status(txt){const el=$('#gpsStatus');el.textContent=txt;el.classList.toggle('show',!!txt);}
+  function renderInfo(){
+    const el=$('#exploreInfo');el.classList.toggle('empty',!sel);
+    if(!sel){
+      el.innerHTML=`<div class="h-title">Cadet Briefing</div>
+      <div class="big-name" style="font-size:20px">Welcome aboard</div>
+      <p class="note" style="margin:8px 0">The whole solar system is shrunk 55 million times and laid across LA County, with the Sun at Griffith Observatory.</p>
+      <div class="row"><span>1 AU at scale</span><b>${KM_AU.toFixed(2)} km</b></div>
+      <div class="row"><span>Sun diameter at scale</span><b>${fmtSize(SUN.km*1000/SCALE)}</b></div>
+      <div class="row"><span>Earth diameter at scale</span><b>${fmtSize(BY_ID.earth.km*1000/SCALE)}</b></div>
+      <div class="row"><span>Speed of light at scale</span><b>${(LIGHT_MPS*2.23694).toFixed(1)} mph</b></div>
+      <div class="fact-box">Tap a planet to scan it. In <b>Simulated</b> mode, tap empty space or press FLY HERE to travel. Every km you cover counts toward AU TRAVELED.</div>`;
+      return;}
+    const b=sel==='sun'?SUN:BY_ID[sel],q=sel==='sun'?{x:0,y:0}:pos[sel];
+    const dSun=Math.hypot(q.x,q.y),dMe=Math.hypot(q.x-P.x,q.y-P.y),brg=bearingOf(q.x-P.x,q.y-P.y);
+    const site=sel!=='sun'&&S.layout==='sites'?SITES[sel]:null;
+    let h=`<div class="h-title">Scan Result</div><div class="big-name">${b.name}</div><div class="cls" style="margin:4px 0 10px">${b.cls}${S.visited[sel]?' · <span style="color:var(--gold)">VISITED</span>':''}</div>`;
+    if(sel==='sun')h+=`<div class="row"><span>Location</span><b>Griffith Observatory</b></div>`;
+    else{
+      if(site)h+=`<div class="row"><span>LASSP site</span><b>${site.label}${site.confirmed?'':' ⚠'}</b></div>`;
+      h+=`<div class="row"><span>Average distance from Sun</span><b>${b.au} AU</b></div>
+      <div class="row"><span>Scaled distance from Griffith</span><b>${fmtKm(dSun)} · ${(dSun*0.621371).toFixed(1)} mi</b></div>
+      <div class="row"><span>Lightspeed Ride from Sun</span><b>${fmtMin(dSun*1000/LIGHT_MPS)}</b></div>`;}
+    h+=`<div class="row"><span>Scaled diameter</span><b>${fmtSize(b.km*1000/SCALE)}</b></div>
+      <div class="row"><span>Your distance</span><b>${fmtKm(dMe)} ${dMe>0.02?compass(brg):''}</b></div>`;
+    if(sel!=='sun'){
+      h+=S.mode==='sim'?`<button class="btn gold full" id="flyBtn">➤ Fly Here</button>`
+        :`<div class="fact-box" style="border-color:var(--cyan)">Head <b>${compass(brg)}</b> for <b>${fmtKm(dMe)}</b> to reach ${b.name}.</div>`;
+      h+=`<div class="fact-box">${b.fact}</div>`;
+      if(site&&!site.confirmed)h+=`<p class="note" style="margin-top:8px">⚠ Placeholder location at the correct scaled distance. Edit SITES in the code to set the real installation site.</p>`;
+    } else h+=`<div class="fact-box">At this scale the Sun is about as wide as a 25-meter swimming pool is long.</div>`;
+    h+=`<button class="btn ghost full" id="infoClose">Close</button>`;
+    el.innerHTML=h;
+    const fb=$('#flyBtn');if(fb)fb.onclick=()=>{flyTo({x:q.x,y:q.y,id:sel});follow=true;};
+    $('#infoClose').onclick=()=>{sel=null;renderInfo();};
+  }
+  setInterval(()=>{if(view==='explore'&&sel)renderInfo();},1000);
+
+  /* ----- modes ----- */
+  function noteText(){
+    let t=S.mode==='sim'?'<b>Simulated:</b> tap anywhere to fly. Ideal for classrooms and demos.'
+      :'<b>Live GPS:</b> your real position relative to Griffith Observatory (the Sun). Walk, bike, or ride to a planet’s site to visit it.';
+    t+=S.layout==='sites'?'<br><br><b>LASSP Sites:</b> Jupiter (Kidspace) and Neptune (Catalina) are confirmed sites; others are placeholders at the correct scaled distance.'
+      :'<br><br><b>Today’s Orbits:</b> each planet is placed where it really is in its orbit today (approximate).';
+    if(S.origin)t+='<br><br>☉ Sun anchored at a custom location. <a href="#" id="resetAnchor" style="color:var(--cyan)">Reset to Griffith</a>';
+    $('#modeNote').innerHTML=t;
+    const ra=$('#resetAnchor');if(ra)ra.onclick=e=>{e.preventDefault();S.origin=null;origin=GRIFFITH;computeGeo();save();noteText();};
+  }
+  function setMode(m){S.mode=m;dirty=true;$('#modeSim').classList.toggle('on',m==='sim');$('#modeGps').classList.toggle('on',m==='gps');
+    if(m==='gps')startGPS();else{stopGPS();status('');}noteText();renderInfo();}
+  function setLayout(l){S.layout=l;dirty=true;$('#laySites').classList.toggle('on',l==='sites');$('#layLive').classList.toggle('on',l==='live');computePositions();noteText();renderInfo();}
+  $('#modeSim').onclick=()=>setMode('sim');$('#modeGps').onclick=()=>setMode('gps');
+  $('#laySites').onclick=()=>setLayout('sites');$('#layLive').onclick=()=>setLayout('live');
+  $('#ctlCollapse').onclick=()=>{const b=$('#ctlBody');const hid=b.style.display==='none';b.style.display=hid?'':'none';$('#ctlCollapse').textContent=hid?'▾':'▸';};
+
+  function startGPS(){
+    target=null;
+    if(!navigator.geolocation){toast('LOCATION IS NOT AVAILABLE ON THIS DEVICE');setMode('sim');return;}
+    status('ACQUIRING GPS SIGNAL…');lastFix=null;
+    watch=navigator.geolocation.watchPosition(onFix,onErr,{enableHighAccuracy:true,maximumAge:2000,timeout:20000});
+  }
+  function stopGPS(){if(watch!=null)navigator.geolocation.clearWatch(watch);watch=null;gpsAcc=null;}
+  function onFix(p){
+    const{latitude:la,longitude:lo,accuracy:a,speed:sp}=p.coords;gpsAcc=a;gpsSpeed=sp;
+    const L=localFrom(origin,la,lo);
+    if(!lastFix&&!S.origin&&Math.hypot(L.x,L.y)>120){offerAnchor(la,lo,Math.hypot(L.x,L.y));}
+    if(!lastFix){lastFix=L;follow=true;zoom=Math.max(zoom,60);}
+    else if(a<=50){const d=Math.hypot(L.x-lastFix.x,L.y-lastFix.y);
+      if(d>=0.01&&d<3){Game.addKm(d);heading=Math.atan2(L.x-lastFix.x,L.y-lastFix.y);lastFix=L;}else if(d>=3)lastFix=L;}
+    P.x=L.x;P.y=L.y;S.player={...P};dirty=true;
+    status(`GPS LOCK ±${Math.round(a)} m`+(sp!=null&&sp>0.3?` · YOU ARE MOVING AT ${(sp/LIGHT_MPS).toFixed(2)}× LIGHT SPEED (SCALED)`:''));
+  }
+  function onErr(err){status('');toast(err.code===1?'LOCATION PERMISSION DENIED':'GPS UNAVAILABLE — NEEDS HTTPS + LOCATION ACCESS');setMode('sim');}
+  function offerAnchor(la,lo,km){
+    openModal('Far from the Sun',`<p style="line-height:1.55">You are about <b>${Math.round(km)} km</b> from Griffith Observatory — outside the LA Solar System.</p>
+      <p class="note" style="margin-top:8px">Anchor the Sun at your current location to play anywhere. Planets will keep the same scaled distances and directions.</p>
+      <div style="display:flex;gap:8px;margin-top:14px"><button class="btn gold" id="anchorYes">Anchor Sun here</button><button class="btn ghost" id="anchorNo">Keep LA</button></div>`,
+    body=>{body.querySelector('#anchorYes').onclick=()=>{S.origin={lat:la,lon:lo};origin=S.origin;computeGeo();lastFix=null;save();noteText();closeModal();};
+      body.querySelector('#anchorNo').onclick=closeModal;});
+  }
+
+  function init(){setLayout(S.layout||'sites');setMode('sim');renderInfo();
+    if(window.innerWidth<=760)$('#ctlCollapse').click();}
+  return{frame,init,positions:()=>pos,player:()=>P,isGps:()=>S.mode==='gps',refit:()=>{fitted=false;}};
+})();
+
+/* =====================================================================
+   AR VIEWER — camera + compass overlay pointing to each planet
+   ===================================================================== */
+const AR=(()=>{
+  let open=false,heading=0,hasCompass=false,stream=null,dragX=null;
+  const cv=$('#arCanvas'),video=$('#arVideo'),stars=makeStars(240,'ar'),FOV=60;
+  function onOrient(e){let h=null;
+    if(e.webkitCompassHeading!=null)h=e.webkitCompassHeading;
+    else if(e.absolute&&e.alpha!=null)h=360-e.alpha;
+    if(h!=null){heading=(h+360)%360;hasCompass=true;}}
+  async function show(){
+    open=true;$('#ar').classList.remove('hidden');hasCompass=false;
+    try{if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function')await DeviceOrientationEvent.requestPermission();}catch(e){}
+    window.addEventListener('deviceorientationabsolute',onOrient,true);window.addEventListener('deviceorientation',onOrient,true);
+    video.style.display='none';
+    try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});video.srcObject=stream;video.style.display='block';}catch(e){stream=null;}
+    msg();
+  }
+  function msg(){
+    let m=Explore.isGps()?'Point your device around you — planet markers show the real direction and distance to each installation.'
+      :'Simulated position. Switch to Live GPS on the Explore map to walk to planets.';
+    if(!hasCompass)m+=' · Drag to look around.';
+    if(!stream)m+=' · Camera unavailable (needs HTTPS + permission) — showing star view.';
+    $('#arMsg').textContent=m;
+  }
+  function hide(){open=false;$('#ar').classList.add('hidden');
+    window.removeEventListener('deviceorientationabsolute',onOrient,true);window.removeEventListener('deviceorientation',onOrient,true);
+    if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}}
+  cv.addEventListener('pointerdown',e=>{dragX=e.clientX;cv.setPointerCapture(e.pointerId);});
+  cv.addEventListener('pointermove',e=>{if(dragX==null||hasCompass)return;heading=(heading-(e.clientX-dragX)*.25+360)%360;dragX=e.clientX;});
+  cv.addEventListener('pointerup',()=>{dragX=null;});
+  $('#arBtn').onclick=show;$('#arClose').onclick=hide;
+  let lastMsg=0;
+  function frame(now){
+    const{w:W,h:H,ctx}=fitCanvas(cv);ctx.clearRect(0,0,W,H);const t=now/1000;
+    if(now-lastMsg>2000){msg();lastMsg=now;}
+    const ppd=W/FOV;
+    if(!stream){const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#02040a');g.addColorStop(.6,'#0a1830');g.addColorStop(1,'#13243a');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+      ctx.fillStyle='#fff';const span=360*ppd;
+      for(const s of stars){let x=((s.x*span-heading*ppd)%span+span)%span;if(x>W)continue;ctx.globalAlpha=s.a;ctx.fillRect(x,s.y*H*.6,s.s,s.s);}ctx.globalAlpha=1;
+      ctx.strokeStyle='rgba(95,212,255,.3)';ctx.beginPath();ctx.moveTo(0,H*.62);ctx.lineTo(W,H*.62);ctx.stroke();}
+    // compass ribbon
+    const ry=58;ctx.fillStyle='rgba(4,8,16,.6)';ctx.fillRect(0,ry-14,W,30);
+    ctx.strokeStyle='rgba(95,212,255,.6)';ctx.fillStyle='#9fd8f0';ctx.font='11px Bahnschrift,Segoe UI';ctx.textAlign='center';
+    for(let d=Math.floor((heading-FOV/2-10)/5)*5;d<=heading+FOV/2+10;d+=5){const x=W/2+(d-heading)*ppd;const dd=((d%360)+360)%360;
+      ctx.beginPath();ctx.moveTo(x,ry+16);ctx.lineTo(x,ry+(dd%15===0?6:11));ctx.stroke();
+      if(dd%45===0)ctx.fillText(DIRS[(dd/22.5)%16],x,ry+2);else if(dd%15===0)ctx.fillText(dd+'°',x,ry+2);}
+    ctx.fillStyle='#e8b84a';ctx.beginPath();ctx.moveTo(W/2,ry+18);ctx.lineTo(W/2-6,ry+26);ctx.lineTo(W/2+6,ry+26);ctx.fill();
+    // targets
+    const pos=Explore.positions(),P=Explore.player();
+    const list=[{b:SUN,x:0,y:0},...PLANETS.map(p=>({b:p,x:pos[p.id].x,y:pos[p.id].y}))].map(o=>{
+      const dx=o.x-P.x,dy=o.y-P.y;o.d=Math.hypot(dx,dy);o.brg=bearingOf(dx,dy);o.rel=((o.brg-heading+540)%360)-180;return o;}).sort((a,b)=>b.d-a.d);
+    let lock=null;
+    list.forEach((o,i)=>{
+      const yb=H*.6-clamp(Math.log10(1+o.d*10)/2.2,0,1)*H*.32;
+      if(Math.abs(o.rel)<=FOV/2+4){
+        const x=W/2+o.rel*ppd,r=clamp(90/(1+o.d*2.2),7,85)*(o.b.id==='sun'?1.5:1);
+        drawPlanet(ctx,x,yb,r,o.b,t);
+        ctx.strokeStyle='rgba(95,212,255,.55)';ctx.beginPath();ctx.moveTo(x,yb+r+4);ctx.lineTo(x,yb+r+18);ctx.stroke();
+        const bw=118,bx=x-bw/2,by=yb+r+18;ctx.fillStyle='rgba(6,12,24,.82)';ctx.fillRect(bx,by,bw,40);ctx.strokeStyle='rgba(95,212,255,.5)';ctx.strokeRect(bx,by,bw,40);
+        ctx.fillStyle=S.visited[o.b.id]?'#e8b84a':'#d6e4f2';ctx.font='600 12px Bahnschrift,Segoe UI';ctx.textAlign='center';ctx.fillText(o.b.name.toUpperCase(),x,by+15);
+        ctx.fillStyle='#8fb4d0';ctx.font='10.5px Bahnschrift,Segoe UI';ctx.fillText(`${fmtKm(o.d)} · ${(o.d/KM_AU).toFixed(2)} AU`,x,by+31);
+        if(Math.abs(o.rel)<4&&(!lock||o.d<lock.d))lock=o;
+      }else{
+        const left=o.rel<0,x=left?16:W-16,y=clamp(yb,110,H-120)+((i%4)-1.5)*18;
+        ctx.fillStyle='rgba(95,212,255,.8)';ctx.beginPath();
+        if(left){ctx.moveTo(x-6,y);ctx.lineTo(x+4,y-6);ctx.lineTo(x+4,y+6);}else{ctx.moveTo(x+6,y);ctx.lineTo(x-4,y-6);ctx.lineTo(x-4,y+6);}ctx.fill();
+        ctx.font='10px Bahnschrift,Segoe UI';ctx.textAlign=left?'left':'right';ctx.fillText(o.b.name,left?x+8:x-8,y+4);
+      }});
+    // reticle
+    ctx.strokeStyle=lock?'#e8b84a':'rgba(255,255,255,.5)';ctx.lineWidth=1.5;const cx=W/2,cy=H*.5;
+    [[-1,-1],[1,-1],[1,1],[-1,1]].forEach(([a,b])=>{ctx.beginPath();ctx.moveTo(cx+a*22,cy+b*12);ctx.lineTo(cx+a*22,cy+b*22);ctx.lineTo(cx+a*12,cy+b*22);ctx.stroke();});
+    $('#arHeading').textContent=`HEADING ${Math.round(heading)}° ${compass(heading)} · ${hasCompass?'COMPASS':'DRAG TO LOOK'}`+(lock?` · LOCKED: ${lock.b.name.toUpperCase()} ${fmtKm(lock.d)}`:'');
+  }
+  return{frame,isOpen:()=>open};
+})();
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* =====================================================================
+   SCIENCE LAB — what worlds are made of
+   ===================================================================== */
+const Lab=(()=>{
+  let sel='earth',elSel=null;const cv=$('#labCanvas'),stars=makeStars(160,'lab');
+  function renderList(){
+    let h='';
+    for(const[label,g]of[['PLANETS','planet'],['DWARF PLANETS','dwarf'],['ASTEROIDS','asteroid']]){
+      h+=`<div class="grp">${label}</div>`;
+      for(const b of BODIES.filter(x=>x.group===g))
+        h+=`<div class="lab-item ${b.id===sel?'sel':''}" data-id="${b.id}"><div class="dot" style="background:radial-gradient(circle at 35% 35%,${b.colors[0]},${b.colors[1]} 60%,${b.colors[2]})"></div>${b.name}${S.labSeen[b.id]?'<span class="chk">✓</span>':''}</div>`;
+    }
+    $('#labList').innerHTML=h;
+    $('#labList').querySelectorAll('.lab-item').forEach(el=>el.onclick=()=>select(el.dataset.id));
+  }
+  function select(id){sel=id;elSel=null;Game.labSee(id);renderList();renderData();
+    const b=BY_ID[id];$('#labTitle').innerHTML=`<div class="big-name">${b.name}</div><div class="cls">${b.cls}</div>`;}
+  function renderData(){
+    const b=BY_ID[sel];let h='<div class="h-title">Atmosphere</div>';
+    if(b.atm){for(const[f,n,p]of b.atm)h+=`<div class="bar"><div class="bl"><span><b>${f}</b> &nbsp;${n}</span><span>${p}%</span></div><div class="bt"><div class="bf" style="width:${Math.max(1.5,p)}%"></div></div></div>`;}
+    else h+='<div class="big-name" style="font-size:16px;color:var(--dim)">None detected</div>';
+    h+=`<p class="note" style="margin-top:6px">${b.atmNote}</p>`;
+    h+=`<div class="h-title" style="margin-top:16px">Surface & Interior</div><p style="font-size:13px;line-height:1.5">${b.surface}</p><div class="tags">${b.materials.map(m=>`<span class="tag">${m}</span>`).join('')}</div>`;
+    h+=`<div class="h-title" style="margin-top:16px">Key Elements · tap to inspect</div><div class="tiles">`;
+    for(const e of b.elements){const E=ELEMENTS[e];h+=`<button class="tile ${elSel===e?'sel':''}" data-el="${e}" style="border-top:2px solid ${E[4]}"><span class="z">${E[0]}</span><span class="s">${e}</span><span class="n">${E[1].toUpperCase()}</span></button>`;}
+    h+='</div>';
+    if(elSel){const E=ELEMENTS[elSel];h+=`<div class="fact-box" style="border-color:${E[4]}"><b>${E[1]} (${elSel})</b> · Atomic number ${E[0]} · Atomic mass ${E[2]}<br>${E[3]}</div>`;}
+    h+=`<div class="h-title" style="margin-top:16px">Key Stats</div>
+      <div class="row"><span>Density</span><b>${b.density} g/cm³ ${b.density<1?'(would float in water!)':''}</b></div>
+      <div class="row"><span>Temperature</span><b>${b.temp}</b></div>
+      <div class="row"><span>Diameter</span><b>${b.km.toLocaleString()} km</b></div>
+      <div class="row"><span>Surface gravity</span><b>${b.g} m/s²</b></div>
+      <div class="row"><span>Moons</span><b>${b.moons}</b></div>
+      <div class="row"><span>Distance from Sun</span><b>${b.au} AU</b></div>
+      <div class="fact-box">${b.fact}</div>
+      <button class="btn gold full" id="specBtn">🌈 Spectral Detective Challenge${S.flags.spectral?' ✓':''}</button>`;
+    $('#labData').innerHTML=h;
+    $('#labData').querySelectorAll('.tile').forEach(t=>t.onclick=()=>{elSel=elSel===t.dataset.el?null:t.dataset.el;renderData();});
+    $('#specBtn').onclick=spectral;
+  }
+  function spectral(){
+    const pool=BODIES.filter(b=>b.atm),TW={jupiter:'saturn',saturn:'jupiter',uranus:'neptune',neptune:'uranus'};
+    const order=shuffle(pool).slice(0,5);let round=0,score=0;
+    const show=body=>{
+      const b=order[round];
+      const opts=shuffle([b,...shuffle(pool.filter(x=>x!==b&&TW[b.id]!==x.id)).slice(0,3)]);
+      body.innerHTML=`<p class="note">Round ${round+1} of 5 · Score ${score}. A probe sent back these gas readings. Which world is it?</p>
+        <div class="hud" style="margin-top:10px">${b.atm.map(([f,n,p])=>`<div class="bar"><div class="bl"><span><b>${f}</b> ${n}</span><span>${p}%</span></div><div class="bt"><div class="bf" style="width:${Math.max(1.5,p)}%"></div></div></div>`).join('')}
+        <div class="row" style="margin-top:6px"><span>Temperature</span><b>${b.temp}</b></div><div class="row"><span>Density</span><b>${b.density} g/cm³</b></div></div>
+        <div class="choices">${opts.map(o=>`<button class="choice" data-id="${o.id}">${o.name}</button>`).join('')}</div><div class="fb" id="specFb"></div>`;
+      body.querySelectorAll('.choice').forEach(btn=>btn.onclick=()=>{
+        if(body.dataset.lock)return;body.dataset.lock=1;
+        const ok=btn.dataset.id===b.id;if(ok)score++;
+        btn.classList.add(ok?'right':'wrong');body.querySelector(`.choice[data-id="${b.id}"]`).classList.add('right');
+        const fb=body.querySelector('#specFb');fb.className='fb '+(ok?'good':'bad');fb.textContent=(ok?'Correct! ':`It was ${b.name}. `)+b.atmNote;
+        setTimeout(()=>{delete body.dataset.lock;round++;
+          if(round<5)show(body);
+          else{const pass=score>=4;if(pass)Game.flag('spectral');
+            body.innerHTML=`<div class="big-name" style="font-size:22px">${pass?'Detective certified':'Keep investigating'}</div>
+              <p style="margin:10px 0;line-height:1.5">You identified <b>${score} of 5</b> worlds. ${pass?'You earned the Spectral Detective objective!':'You need 4 of 5. Study the atmosphere bars in the lab and try again.'}</p>
+              <button class="btn gold" id="specAgain">${pass?'Play again':'Try again'}</button>`;
+            body.querySelector('#specAgain').onclick=()=>{round=0;score=0;show(body);};renderData();}
+        },1700);});
+    };
+    openModal('Spectral Detective','',show);
+  }
+  function frame(now){
+    const{w:W,h:H,ctx}=fitCanvas(cv);const t=now/1000,b=BY_ID[sel];
+    ctx.fillStyle='#03060c';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';
+    for(const s of stars){ctx.globalAlpha=s.a*.6;ctx.fillRect(s.x*W,s.y*H,s.s,s.s);}ctx.globalAlpha=1;
+    const cx=W/2,cy=H/2+16,R=Math.min(W,H)*(b.id==='saturn'?.2:.26);
+    ctx.strokeStyle='rgba(95,212,255,.18)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(cx,cy,R*1.5,0,TAU);ctx.stroke();
+    ctx.strokeStyle='rgba(95,212,255,.5)';ctx.setLineDash([2,8]);ctx.beginPath();ctx.arc(cx,cy,R*1.66,t*.15,t*.15+Math.PI*1.3);ctx.stroke();ctx.setLineDash([]);
+    ctx.strokeStyle='rgba(232,184,74,.35)';for(let a=0;a<360;a+=10){const r1=R*1.8,r2=R*(a%30===0?1.88:1.84),ar=a*D2R-t*.05;
+      ctx.beginPath();ctx.moveTo(cx+Math.cos(ar)*r1,cy+Math.sin(ar)*r1);ctx.lineTo(cx+Math.cos(ar)*r2,cy+Math.sin(ar)*r2);ctx.stroke();}
+    drawPlanet(ctx,cx,cy,R,b,t);
+    if(W>560){
+      const callouts=[[-35,'DENSITY',b.density+' g/cm³'],[25,'TEMPERATURE',b.temp],[200,'DIAMETER',b.km.toLocaleString()+' km']];
+      ctx.font='10px Bahnschrift,Segoe UI';
+      for(const[a,l,v]of callouts){const ar=a*D2R,x1=cx+Math.cos(ar)*R*1.02,y1=cy+Math.sin(ar)*R*1.02,x2=cx+Math.cos(ar)*R*1.5,y2=cy+Math.sin(ar)*R*1.5;
+        const right=Math.cos(ar)>0,x3=x2+(right?40:-40);
+        ctx.strokeStyle='rgba(95,212,255,.6)';ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.lineTo(x3,y2);ctx.stroke();
+        ctx.fillStyle='#5fd4ff';ctx.beginPath();ctx.arc(x1,y1,2.5,0,TAU);ctx.fill();
+        ctx.textAlign=right?'left':'right';ctx.fillStyle='#7890a8';ctx.fillText(l,x3+(right?6:-6),y2-4);
+        ctx.fillStyle='#d6e4f2';ctx.font='600 13px Bahnschrift,Segoe UI';ctx.fillText(v,x3+(right?6:-6),y2+12);ctx.font='10px Bahnschrift,Segoe UI';}
+    }
+  }
+  function init(){renderList();renderData();const b=BY_ID[sel];$('#labTitle').innerHTML=`<div class="big-name">${b.name}</div><div class="cls">${b.cls}</div>`;}
+  return{init,frame};
+})();
+
+/* =====================================================================
+   ORBIT LAB — days, years, Kepler
+   ===================================================================== */
+const Orbit=(()=>{
+  const cv=$('#orreryCanvas'),stars=makeStars(200,'orr');
+  const SPEEDS=[[1,'1 day/s'],[7,'1 week/s'],[30,'1 month/s'],[365,'1 year/s'],[3650,'10 years/s']];
+  let simDays=0,speedIdx=2,playing=true,sel='earth',hits=[],lastUi=0;
+  const fmtDay=h=>h<48?h.toFixed(1)+' hours':(h/24).toFixed(1)+' Earth days';
+  const fmtYear=d=>d<1000?Math.round(d)+' Earth days':(d/365.256).toFixed(1)+' Earth years';
+  const localDays=p=>{const v=p.period*24/p.solarDayH;return v<10?v.toFixed(2):Math.round(v).toLocaleString();};
+  function frame(dt,now){
+    if(playing)simDays+=SPEEDS[speedIdx][0]*dt;
+    const{w:W,h:H,ctx}=fitCanvas(cv);const cx=W/2,cy=H/2,R=Math.min(W,H)/2-24,ms=Date.now()+simDays*DAY_MS;
+    ctx.fillStyle='#03060c';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';
+    for(const s of stars){ctx.globalAlpha=s.a*.5;ctx.fillRect(s.x*W,s.y*H,s.s,s.s);}ctx.globalAlpha=1;
+    drawPlanet(ctx,cx,cy,9,SUN,now/1000);hits=[];
+    for(const p of PLANETS){
+      const r=R*(0.12+0.88*Math.cbrt(p.au/30.07));
+      ctx.strokeStyle=p.id===sel?'rgba(95,212,255,.5)':'rgba(95,212,255,.15)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(cx,cy,r,0,TAU);ctx.stroke();
+      if(p.id===sel&&simDays>0){const a0=meanLon(p,Date.now())*D2R,el=Math.min(TAU,TAU*simDays/p.period);
+        ctx.strokeStyle='#e8b84a';ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy,r,-a0,-(a0+el),true);ctx.stroke();ctx.lineWidth=1;}
+      const L=meanLon(p,ms)*D2R,x=cx+Math.cos(L)*r,y=cy-Math.sin(L)*r,pr=3.5+Math.sqrt(p.km/139820)*7;
+      drawPlanet(ctx,x,y,pr,p,now/1000);hits.push({id:p.id,x,y,r:Math.max(pr+6,14)});
+      const n=Math.floor(simDays/p.period);
+      ctx.font='10px Bahnschrift,Segoe UI';ctx.textAlign='left';ctx.fillStyle=p.id===sel?'#5fd4ff':'#9fb6cc';
+      ctx.fillText(p.name.toUpperCase()+(n>0?` ×${n}`:''),x+pr+4,y-pr-2);
+    }
+    ctx.textAlign='left';ctx.fillStyle='#e8b84a';ctx.font='600 15px Bahnschrift,Segoe UI';
+    ctx.fillText(new Date(ms).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}),16,26);
+    ctx.fillStyle='#7890a8';ctx.font='11px Bahnschrift,Segoe UI';
+    ctx.fillText(`+${Math.floor(simDays).toLocaleString()} Earth days · ${playing?SPEEDS[speedIdx][1]:'PAUSED'}`,16,44);
+    ctx.fillText('×N = orbits completed · distances compressed',16,H-14);
+    if(now-lastUi>300){lastUi=now;const el=$('#orbCount');if(el){const p=BY_ID[sel];el.textContent=(simDays/p.period).toFixed(2);}}
+  }
+  cv.addEventListener('click',e=>{const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+    for(const h of hits)if(Math.hypot(h.x-mx,h.y-my)<h.r){sel=h.id;renderPanels();return;}});
+  function renderPanels(){
+    $('#timeCtl').innerHTML=`<div class="h-title">Time Control</div><div class="speedrow">
+      <button class="btn ${playing?'':'on'}" id="tPlay">${playing?'❚❚ Pause':'▶ Play'}</button>
+      ${SPEEDS.map((s,i)=>`<button class="btn ${i===speedIdx?'on':''}" data-sp="${i}">${s[1]}</button>`).join('')}
+      <button class="btn ghost" id="tReset">⟲ Today</button></div>
+      <p class="note" style="margin-top:8px">Watch the inner planets lap the outer ones. Tap a planet to track how many orbits it completes.</p>`;
+    $('#tPlay').onclick=()=>{playing=!playing;renderPanels();};
+    $('#tReset').onclick=()=>{simDays=0;renderPanels();};
+    document.querySelectorAll('#timeCtl [data-sp]').forEach(b=>b.onclick=()=>{speedIdx=+b.dataset.sp;playing=true;renderPanels();});
+    const p=BY_ID[sel];
+    $('#orbitCard').innerHTML=`<div class="h-title">Orbit Profile</div><div class="big-name">${p.name}</div><div class="cls" style="margin:4px 0 10px">${p.cls}</div>
+      <div class="row"><span>Year (one orbit)</span><b>${fmtYear(p.period)}</b></div>
+      <div class="row"><span>Day (sunrise to sunrise)</span><b>${fmtDay(p.solarDayH)}</b></div>
+      <div class="row"><span>Spin (one rotation)</span><b>${fmtDay(Math.abs(p.rotH))}${p.rotH<0?' · backwards':''}</b></div>
+      <div class="row"><span>Local days in one year</span><b>${localDays(p)}</b></div>
+      <div class="row"><span>Orbital speed</span><b>${p.speed} km/s</b></div>
+      <div class="row"><span>Orbit shape (eccentricity)</span><b>${p.ecc}</b></div>
+      <div class="row"><span>Axial tilt</span><b>${p.tilt}°</b></div>
+      <div class="row"><span>Orbits since you pressed play</span><b id="orbCount">${(simDays/p.period).toFixed(2)}</b></div>
+      <div class="fact-box">${p.orbitFact}</div>`;
+    $('#dayYearTable').innerHTML=`<div class="h-title">Day vs. Year</div><table class="dt"><tr><th>Planet</th><th>Day</th><th>Year</th><th>Days / Year</th></tr>
+      ${PLANETS.map(q=>`<tr class="${q.id===sel?'hl':''}" data-id="${q.id}"><td>${q.name}</td><td>${fmtDay(q.solarDayH)}</td><td>${fmtYear(q.period)}</td><td>${localDays(q)}</td></tr>`).join('')}</table>
+      <p class="note" style="margin-top:8px">On Mercury, one day lasts two of its years. On Jupiter, a year holds over 10,000 days!</p>`;
+    document.querySelectorAll('#dayYearTable tr[data-id]').forEach(tr=>tr.onclick=()=>{sel=tr.dataset.id;renderPanels();});
+    if(!$('#ageDate'))renderAge();
+    if(!$('#kepQ'))renderKepler();
+  }
+  function renderAge(){
+    $('#ageCalc').innerHTML=`<div class="h-title">Age Calculator</div><p class="note">How old would you be on other planets?</p>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><input type="date" id="ageDate"><button class="btn gold" id="ageGo">Calculate</button></div><div id="ageOut"></div>`;
+    $('#ageGo').onclick=()=>{
+      const v=$('#ageDate').value;if(!v){$('#ageOut').innerHTML='<div class="fb bad">Pick your birthday first.</div>';return;}
+      const days=(Date.now()-new Date(v+'T12:00:00').getTime())/DAY_MS;
+      if(days<=0||days>365.256*120){$('#ageOut').innerHTML='<div class="fb bad">Enter a real birthday in the past.</div>';return;}
+      $('#ageOut').innerHTML=`<table class="dt" style="margin-top:10px"><tr><th>Planet</th><th>Your age</th><th>Next birthday in</th></tr>
+        ${PLANETS.map(p=>`<tr><td>${p.name}</td><td>${(days/p.period).toFixed(2)} yrs</td><td>${Math.ceil(p.period-days%p.period).toLocaleString()} Earth days</td></tr>`).join('')}</table>
+        <p class="note" style="margin-top:8px">You have lived about ${Math.floor(days).toLocaleString()} Earth days. On Mercury you would have had ${Math.floor(days/87.969)} birthdays!</p>`;
+      Game.flag('ageCalc');};
+  }
+  const KQ=[{q:'An asteroid orbits at a = 4 AU. How many Earth years is its orbit?',o:['4','8','16','64'],a:'8',e:'a³ = 4×4×4 = 64, and T² = 64 means T = 8 years.'},
+    {q:'A comet’s orbit has an average distance of a = 9 AU. How long is its year?',o:['9 years','27 years','81 years','729 years'],a:'27 years',e:'a³ = 729, and √729 = 27 years.'},
+    {q:'An object orbits at a = 16 AU. How long is its year?',o:['16 years','32 years','64 years','256 years'],a:'64 years',e:'a³ = 4,096, and √4,096 = 64 years.'},
+    {q:'Ceres orbits at about 2.77 AU. Its year is closest to…',o:['2.8 years','4.6 years','7.7 years','21 years'],a:'4.6 years',e:'2.77³ ≈ 21.3, and √21.3 ≈ 4.6 years.'}];
+  function renderKepler(){
+    const k=KQ[Math.floor(Math.random()*KQ.length)];
+    $('#keplerBox').innerHTML=`<div class="h-title">Kepler’s Code · T² = a³</div>
+      <p class="note">Measure a planet’s distance <b>a</b> in AU and its year <b>T</b> in Earth years. Kepler found that T² always equals a³. Check the pattern:</p>
+      <table class="dt" style="margin-top:8px"><tr><th>Planet</th><th>a (AU)</th><th>a³</th><th>T (yrs)</th><th>T²</th></tr>
+      ${PLANETS.slice(0,6).map(p=>{const T=p.period/365.256;return`<tr><td>${p.name}</td><td>${p.au}</td><td>${(p.au**3).toFixed(2)}</td><td>${T.toFixed(2)}</td><td>${(T*T).toFixed(2)}</td></tr>`;}).join('')}</table>
+      <p id="kepQ" style="margin-top:12px;font-size:14px;line-height:1.45"><b>Challenge:</b> ${k.q}</p>
+      <div class="choices">${shuffle(k.o).map(o=>`<button class="choice" data-o="${o}">${o}</button>`).join('')}</div><div class="fb" id="kepFb"></div>`;
+    $('#keplerBox').querySelectorAll('.choice').forEach(b=>b.onclick=()=>{
+      const ok=b.dataset.o===k.a,fb=$('#kepFb');b.classList.add(ok?'right':'wrong');
+      fb.className='fb '+(ok?'good':'bad');
+      fb.innerHTML=ok?`Correct! ${k.e} <a href="#" id="kepNext" style="color:var(--cyan)">Next challenge</a>`:'Not quite. Cube the distance, then find the square root.';
+      if(ok){Game.flag('kepler');$('#kepNext').onclick=e=>{e.preventDefault();renderKepler();};}});
+  }
+  return{frame,renderPanels};
+})();
+
+/* =====================================================================
+   MISSION CONTROL — curriculum progression
+   ===================================================================== */
+const Missions=(()=>{
+  function render(){
+    const td=tiersDone(),doneN=MISSIONS.filter(m=>S.done[m.id]).length;
+    const cur=Math.min(td,TIERS.length-1),inTier=MISSIONS.filter(m=>m.tier===cur),inDone=inTier.filter(m=>S.done[m.id]).length;
+    let h=`<div class="hud rank-head"><div class="insignia">${RANK_ICONS[td]}</div><div style="flex:1;min-width:220px">
+      <div class="cls">Current Rank</div><div class="big-name">${RANKS[td]}</div>
+      <div class="note">${doneN} of ${MISSIONS.length} missions complete${td<TIERS.length?` · ${TIERS[cur]}: ${inDone}/${inTier.length}`:' · All training complete!'}</div>
+      <div class="prog"><i style="width:${td>=TIERS.length?100:inDone/inTier.length*100}%"></i></div></div>
+      <div class="note" style="max-width:300px">Each mission is aligned to an NGSS middle-school standard. Finish every mission in a tier to be promoted and unlock the next one.</div></div>`;
+    TIERS.forEach((name,t)=>{
+      const un=tierUnlocked(t);
+      h+=`<div class="tier ${un?'':'locked'}"><div class="h-title">${un?'':'🔒 '}Tier ${t+1} · ${name}</div><div class="mgrid">`;
+      for(const m of MISSIONS.filter(x=>x.tier===t)){
+        const d=!!S.done[m.id];let st=d?'✔ COMPLETE':!un?'LOCKED':'ACTIVE';
+        if(!d&&un&&m.track){const[c,tt]=m.track();st+=` · ${Math.min(c,tt)}/${tt}`;}
+        h+=`<button class="mcard ${d?'done':''}" data-id="${m.id}"><div class="hex ${d?'':'empty'}">${m.icon}</div><div><div class="mt">${m.title}</div><div class="md">${m.goal||m.q}</div><div class="ms">${st}</div></div></button>`;
+      }
+      h+='</div></div>';
+    });
+    h+=`<div style="text-align:right;padding:10px 0 20px"><button class="btn ghost" id="resetAll">Reset cadet progress</button></div>`;
+    $('#mcWrap').innerHTML=h;
+    $('#mcWrap').querySelectorAll('.mcard').forEach(c=>c.onclick=()=>open(MISSIONS.find(m=>m.id===c.dataset.id)));
+    $('#resetAll').onclick=()=>{if(confirm('Reset all progress for this device? (For instructors between cadets.)')){try{localStorage.removeItem(STORE);}catch(e){}location.reload();}};
+  }
+  function open(m){
+    const un=tierUnlocked(m.tier),d=!!S.done[m.id];
+    let h=`<div style="display:flex;gap:14px;align-items:center;margin-bottom:12px"><div class="hex ${d?'':'empty'}" style="width:48px;height:55px;font-size:24px">${m.icon}</div>
+      <div><div class="cls">${TIERS[m.tier]} · ${m.ngss}</div><div class="note">${NGSS[m.ngss]}</div></div></div>
+      <p style="line-height:1.55;font-size:14px">${m.brief}</p>`;
+    if(!un){openModal(m.title,h+`<div class="fact-box">🔒 Locked. Complete ${TIERS[m.tier-1]} first.</div>`);return;}
+    if(m.track){const[c,t]=m.track();
+      h+=`<div class="row" style="margin-top:12px"><span>Objective</span><b>${m.goal}</b></div><div class="prog" style="max-width:none"><i style="width:${Math.min(1,c/t)*100}%"></i></div>
+        <p class="note" style="margin-top:6px">${d?'✔ Completed — badge earned!':`Progress: ${Math.min(c,t)} / ${t}`}</p>
+        ${d?'':`<button class="btn gold full" id="mGo">Go to ${({explore:'Explore',lab:'Science Lab',orbit:'Orbit Lab',facts:'Space Facts'})[m.go]}</button>`}`;
+      openModal(m.title,h,b=>{const g=b.querySelector('#mGo');if(g)g.onclick=()=>{closeModal();setView(m.go);};});return;}
+    if(m.kind==='numeric'){
+      h+=`<p style="margin-top:12px;font-size:15px;line-height:1.5"><b>${m.q}</b></p>
+        <div style="display:flex;gap:8px;margin-top:10px;align-items:center"><input type="number" step="any" id="mAns" style="width:140px" ${d?'disabled':''}><span class="note">${m.unit}</span>
+        <button class="btn gold" id="mSub" ${d?'disabled':''}>Submit</button></div><div class="fb ${d?'good':''}" id="mFb">${d?'✔ Completed. '+m.explain:''}</div>`;
+      openModal(m.title,h,b=>{const sub=b.querySelector('#mSub');sub.onclick=()=>{
+        const v=parseFloat(b.querySelector('#mAns').value),fb=b.querySelector('#mFb');
+        if(isNaN(v)){fb.className='fb bad';fb.textContent='Enter a number.';return;}
+        if(Math.abs(v-m.answer)<=m.tol){fb.className='fb good';fb.textContent='Correct! '+m.explain;sub.disabled=true;completeMission(m);}
+        else{fb.className='fb bad';fb.textContent='Not quite. Hint: '+m.hint;}};});return;}
+    if(m.kind==='choice'){
+      h+=`<p style="margin-top:12px;font-size:15px;line-height:1.5"><b>${m.q}</b></p><div class="choices">${m.options.map(o=>`<button class="choice" data-o="${o}">${o}</button>`).join('')}</div>
+        <div class="fb ${d?'good':''}" id="mFb">${d?'✔ Completed. '+m.explain:''}</div>`;
+      openModal(m.title,h,b=>b.querySelectorAll('.choice').forEach(c=>c.onclick=()=>{
+        const ok=c.dataset.o===m.answer,fb=b.querySelector('#mFb');c.classList.add(ok?'right':'wrong');
+        fb.className='fb '+(ok?'good':'bad');fb.textContent=ok?'Correct! '+m.explain:'Try again — divide Jupiter’s gravity by Earth’s.';
+        if(ok)completeMission(m);}));return;}
+    if(m.kind==='exam'){
+      openModal(m.title,h+`<button class="btn gold full" id="exStart">${d?'Retake exam':'Begin exam'}</button>`,b=>{
+        b.querySelector('#exStart').onclick=()=>{let i=0,sc=0;const qs=m.questions;
+          const step=()=>{const q=qs[i];const opts=shuffle(q.options.map((o,k)=>({o,k})));
+            b.innerHTML=`<p class="note">Question ${i+1} of ${qs.length} · Score ${sc}</p><p style="margin:10px 0;font-size:15px;line-height:1.5"><b>${q.q}</b></p>
+              <div class="choices">${opts.map(x=>`<button class="choice" data-k="${x.k}">${x.o}</button>`).join('')}</div><div class="fb" id="exFb"></div>`;
+            b.querySelectorAll('.choice').forEach(c=>c.onclick=()=>{if(b.dataset.lock)return;b.dataset.lock=1;
+              const ok=+c.dataset.k===q.answer;if(ok)sc++;c.classList.add(ok?'right':'wrong');b.querySelector(`.choice[data-k="${q.answer}"]`).classList.add('right');
+              setTimeout(()=>{delete b.dataset.lock;i++;if(i<qs.length)step();else{const pass=sc>=m.pass;
+                b.innerHTML=`<div class="big-name" style="font-size:22px">${pass?'Certified!':'Almost there'}</div><p style="margin:10px 0;line-height:1.5">You scored <b>${sc} / ${qs.length}</b>. ${pass?'Welcome to the ranks of Space Pros.':`You need ${m.pass} to pass. Review the labs and try again.`}</p><button class="btn gold" id="exClose">Close</button>`;
+                b.querySelector('#exClose').onclick=closeModal;if(pass)completeMission(m);}},1300);});};
+          step();};});}
+  }
+  return{render};
+})();
+
+/* =====================================================================
+   SPACE FACTS
+   ===================================================================== */
+(()=>{
+  let bag=[];
+  $('#factBtn').onclick=()=>{
+    if(!bag.length){const unseen=FACTS.map((_,i)=>i).filter(i=>!S.facts.includes(i));bag=shuffle(unseen.length?unseen:FACTS.map((_,i)=>i));}
+    const i=bag.pop(),[cat,txt]=FACTS[i],card=$('#factCard');
+    $('#factTag').textContent=`TRANSMISSION #${String(i+1).padStart(2,'0')} · ${cat.toUpperCase()}`;$('#factText').textContent=txt;
+    card.classList.remove('pop');void card.offsetWidth;card.classList.add('pop');
+    Game.fact(i);$('#factCount').textContent=`Facts discovered: ${S.facts.length} of ${FACTS.length}`;
+  };
+  $('#factCount').textContent=`Facts discovered: ${S.facts.length} of ${FACTS.length}`;
+})();
+
+/* =====================================================================
+   MAIN LOOP + INIT
+   ===================================================================== */
+let lastT=performance.now();
+function loop(now){
+  const dt=Math.min(.1,(now-lastT)/1000);lastT=now;
+  try{
+    if(AR.isOpen())AR.frame(now);
+    else if(view==='explore')Explore.frame(dt,now);
+    else if(view==='lab')Lab.frame(now);
+    else if(view==='orbit')Orbit.frame(dt,now);
+  }catch(e){console.error(e);}
+  requestAnimationFrame(loop);
+}
+Explore.init();Lab.init();Orbit.renderPanels();updateHUD();checkMissions();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

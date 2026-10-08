@@ -1,2 +1,2 @@
-# planetaryorbitworks-app
-A STEM app dveloped in junction with the Los Angeles Solar System Project 
+# PlanetaryOrbitWorks-app
+A STEM app developed alongside the Los Angeles Solar System Project 
